@@ -300,9 +300,27 @@ struct dbell_clock
 static dbell_clock_t *clock;
 
 static DBELL_ERROR
-parseScheduleString(const char *scheduleString)
+parseScheduleString(const char *scheduleString, dbell_entry_t *entry)
 {
-    //TODO
+    RETURN_ILLEGAL_IF(scheduleString == NULL);
+    RETURN_ILLEGAL_IF(entry == NULL);
+
+    int currCharIdx = 0;
+    for(; currCharIdx < strlen(scheduleString); currCharIdx++)
+    {
+        if(isspace(scheduleString[currCharIdx]))
+        {
+            continue;
+        }
+
+        if(scheduleString[0] == '@')
+        {
+            if(strncmp("@yearly", scheduleString, 7) == 0)
+            {
+
+            }
+        }
+    }
 }
 
 DBELL_ERROR
