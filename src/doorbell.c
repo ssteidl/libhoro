@@ -299,6 +299,56 @@ struct dbell_clock
 
 static dbell_clock_t *clock;
 
+/**
+ * @brief Determine if a character is valid.
+ */
+static int validCharacter(char _char)
+{
+    if(_char == ',' || _char == '-' || _char == '/')
+    {
+        return 1;
+    }
+
+    if(_char >= '0' && _char <= '9')
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+static int getFields(char* fieldBuf, size_t bufSize,
+                      char** fieldPointers, size_t fieldPointersSize)
+{
+    int i = 0;
+    int fieldFound = 0;
+    int fieldPointerIndex;
+    for(; i < bufSize; i++)
+    {
+        if(isascii(fieldBuf[i]) && !fieldFound)
+        {
+            fieldFound = 1;
+            fieldPointers[fieldPointerIndex++] = &fieldBuf[i];
+            if(fieldPointerIndex == fieldPointersSize)
+            {
+                //Fields array is full
+                break;
+            }
+        }
+        else if(isspace(fieldBuf[i]))
+        {
+            fieldBuf[i] = '\0';
+            fieldFound = 0;
+        }
+        else
+        {
+            //TODO: Error callback
+            assert(0);
+        }
+    }
+    return fieldPointerIndex;
+}
+
 static DBELL_ERROR
 parseScheduleString(const char *scheduleString, dbell_entry_t *entry)
 {
@@ -306,21 +356,52 @@ parseScheduleString(const char *scheduleString, dbell_entry_t *entry)
     RETURN_ILLEGAL_IF(entry == NULL);
 
     int currCharIdx = 0;
-    for(; currCharIdx < strlen(scheduleString); currCharIdx++)
-    {
-        if(isspace(scheduleString[currCharIdx]))
-        {
-            continue;
-        }
+//    for(; currCharIdx < strlen(scheduleString); currCharIdx++)
+//    {
+//        if(isspace(scheduleString[currCharIdx]))
+//        {
+//            continue;
+//        }
 
-        if(scheduleString[0] == '@')
-        {
-            if(strncmp("@yearly", scheduleString, 7) == 0)
-            {
+//        if(scheduleString[0] == '@')
+//        {
+//            //TODO: Check for buffer overflow here. '@' could
+//            //be close
+//            if(strncmp("@yearly", scheduleString, 7) == 0 ||
+//               strncmp("@annually", scheduleString, 9))
+//            {
+//                entry->minute = 0;
+//                entry->hour = 0;
+//                entry->dayOfMonth &= 1 << 1;
+//                entry->month &= 1 << 1;
+//                entry->dayOfWeek = 0xFF; //Any day of week
+//            }
+//            else if(strncmp("@monthly", scheduleString, 8))
+//            {
+//                entry->minute = 0;
+//                entry->hour = 0;
+//                entry->dayOfMonth = 1 << 1;
+//                entry->month = (0xFF << 24) + (0xFF << 16) + (0xFF << 8) + (0xFF);
+//                entry->dayOfWeek = 0xFF;
+//            }
+//        }
+//        else if()
+//        {
+//            /*TODO: I think the parser should do something like the following:
+//             * for each field find the lists, ranges and steps and group them
+//             * appropriately.
+//             * A step must follow a range.
+//             * Lists and ranges can coexist.
+//             * A range can just be broken down into a list
+//             * Lists should be the common denominator of everything.  Each field
+//             *   can be broken down into a list.*/
 
-            }
-        }
-    }
+//            char nextField[1024];
+//            memset(nextField, 0, sizeof(nextField));
+
+//            findNextField(nextField, sizeof(nextField));
+//        }
+//    }
 }
 
 DBELL_ERROR
@@ -332,7 +413,9 @@ dbell_scheduleAction(const char *scheduleString, const char *schedName,
     RETURN_ILLEGAL_IF(action == NULL);
 
     DBELL_ERROR ret = DBELL_SUCCESS;
-    dbell_entry_t *newEntry = (dbell_entry_t)malloc(sizeof(dbell_entry_t));
+
+    //TODO: Get rid of dynamic memory
+    dbell_entry_t *newEntry = (dbell_entry_t*)malloc(sizeof(dbell_entry_t));
 
     if(NULL == newEntry)
     {
