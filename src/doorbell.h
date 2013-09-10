@@ -2,6 +2,7 @@
 #define DOORBELL_H
 
 #include <inttypes.h>
+#include "Parser.h"
 
 typedef enum
 {
@@ -21,14 +22,13 @@ typedef enum
 typedef DBELL_ACTION_CODE (*dbell_actionFunc)(const char *schedName, void *actionData);
 typedef uint64_t (*clockFunc)();
 
-//Create opaque structures.
-typedef struct dbell_entry dbell_entry_t;
 typedef struct dbell_clock dbell_clock_t;
 
 DBELL_ERROR
-dbell_scheduleAction(const char *scheduleString, const char *schedName,
-                     dbell_actionFunc action, void *actionData);
-
+dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString, 
+                     dbell_actionFunc action, void *actionData,
+                     int* alarmID);
+                     
 DBELL_ERROR
 processOnce();
 
