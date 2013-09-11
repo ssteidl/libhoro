@@ -3,7 +3,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <time.h>
+  
 #define RETURN_ILLEGAL_IF(statement) if((statement)) return DBELL_ERROR_ILLEGAL_ARG
 #define IS_INITIALIZED(container) ((container)->initKey == INITIALIZED_KEY)
 #define RETURN_IF_NOT_INITIALIZED(container) if(!IS_INITIALIZED((container))) return DBELL_ERROR_NOT_INITIALIZED
@@ -239,8 +240,8 @@ DONE:
 
 static DBELL_ERROR
 dbellList_forEach(const dbellContainer_t *list,
-                 dbellList_forEachFunc callBack,
-                 void *userp)
+                  dbellList_forEachFunc callBack,
+                  void *userp)
 {
     RETURN_ILLEGAL_IF(list == NULL);
     RETURN_IF_NOT_INITIALIZED(list);
@@ -295,10 +296,10 @@ typedef struct dbell_entry dbell_entry_t;
 struct dbell_clock
 {
     dbellList_t *entries;
-    clockFunc timeCheck;
     char *scheduleString;
     char *scheduleName;
 
+    time_t lastTick;
     uint64_t nextActionID;
 };
 
@@ -340,8 +341,46 @@ DONE:
     return ret;
 }
 
-DBELL_ERROR
-dbell_process()
+typedef struct
 {
+    dbell_clock_t* clock;
+    struct tm* timeinfo;
+}checkEntryData_t;
 
+static DBELL_ERROR
+checkEachEntry(dbell_entry_t* entry, checkEntryData_t* checkEntryData)
+{
+    if((entry->minute & (1 << checkEntryData->timeinfo->tm_sec)) &&
+       (entry->hour & (1 << checkEntryData->timeinfo->tm_hour)))
+    {
+        entry->action(entry->actionData);
+    }
+
+    return DBELL_SUCCESS;
+}
+
+DBELL_ERROR
+dbell_process(dbell_clock_t* clock)
+{
+    size_t numEntries = 0;
+    DBELL_ERROR ret = dbellList_size(clock->entries, &numEntries);
+    if(ret)
+    {
+        return ret;
+    }
+
+    if(numEntries > 0)
+    {
+        time_t currentTime;
+        memset(&currentTime, 0, sizeof(currentTime));
+
+        currentTime = time(NULL);
+        struct tm* timeinfo = localtime(&currentTime);
+
+        checkEntryData_t entryCheck;
+        entryCheck.clock = clock;
+        entryCheck.timeinfo = timeinfo;
+    }
+
+    return ret;
 }

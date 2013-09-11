@@ -6,12 +6,6 @@
 
 typedef enum
 {
-  DBELL_ACTION_CODE_DONE,
-  DBELL_ACTION_CODE_REMOVE
-}DBELL_ACTION_CODE;
-
-typedef enum
-{
     DBELL_SUCCESS = 0x0,
     DBELL_ERROR_ILLEGAL_ARG = 0x1,
     DBELL_ERROR_NO_MEM = 0x2,
@@ -19,8 +13,7 @@ typedef enum
     DBELL_ERROR_CORRUPT = 0x4
 }DBELL_ERROR;
 
-typedef DBELL_ACTION_CODE (*dbell_actionFunc)(const char *schedName, void *actionData);
-typedef uint64_t (*clockFunc)();
+typedef void (*dbell_actionFunc)(void* actionData);
 
 typedef struct dbell_clock dbell_clock_t;
 
@@ -30,9 +23,6 @@ dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString,
                      int* alarmID);
                      
 DBELL_ERROR
-processOnce();
-
-DBELL_ERROR
-process();
+dbell_process(dbell_clock_t* clock);
 
 #endif // DOORBELL_H
