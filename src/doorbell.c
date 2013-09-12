@@ -287,6 +287,8 @@ struct dbell_entry
     uint16_t month;
     uint8_t dayOfWeek;
 
+    struct tm lastRuntime;
+  
     dbell_actionFunc action;
     void *actionData;
 };
@@ -295,9 +297,7 @@ typedef struct dbell_entry dbell_entry_t;
 
 struct dbell_clock
 {
-    dbellList_t *entries;
-    char *scheduleString;
-    char *scheduleName;
+    dbellList_t entries;
 
     time_t lastTick;
     uint64_t nextActionID;
@@ -333,9 +333,14 @@ dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString,
     newEntry->dayOfMonth = cronVals.dayOfMonth;
     newEntry->month = cronVals.month;
     newEntry->dayOfWeek = cronVals.dayOfWeek;
+
+    memset(&newEntry->lastRuntime, 0, sizeof(newEntry->lastRuntime));
     
     newEntry->action = action;
     newEntry->actionData = actionData;
+
+    //TODO: Error handling
+    dbellList_add(&clock->entries, newEntry, sizeof(*newEntry)); 
     
 DONE:
     return ret;
@@ -350,20 +355,43 @@ typedef struct
 static DBELL_ERROR
 checkEachEntry(dbell_entry_t* entry, checkEntryData_t* checkEntryData)
 {
-    if((entry->minute & (1 << checkEntryData->timeinfo->tm_sec)) &&
-       (entry->hour & (1 << checkEntryData->timeinfo->tm_hour)))
+    struct tm* timeinfo = checkEntryData->timeinfo;
+    if((entry->minute & (1 << timeinfo->tm_min)) &&
+       (entry->hour & (1 << timeinfo->tm_hour)))
     {
-        entry->action(entry->actionData);
+        struct tm* lastRuntime = &entry->lastRuntime;
+        if(lastRuntime->tm_min != timeinfo->tm_min ||
+           lastRuntime->tm_hour != timeinfo->tm_hour)
+        {
+            entry->action(entry->actionData);
+            entry->lastRuntime = *timeinfo;
+        }
     }
 
     return DBELL_SUCCESS;
 }
 
 DBELL_ERROR
+dbell_init(dbell_clock_t** oClock)
+{
+    RETURN_ILLEGAL_IF(oClock == NULL);
+
+    *oClock = malloc(sizeof(dbell_clock_t));
+    if(*oClock == NULL)
+    {
+        return DBELL_ERROR_NO_MEM;
+    }
+    
+    (*oClock)->lastTick=0;
+    (*oClock)->nextActionID=0;
+    return dbellList_init(&(*oClock)->entries);
+}
+
+DBELL_ERROR
 dbell_process(dbell_clock_t* clock)
 {
     size_t numEntries = 0;
-    DBELL_ERROR ret = dbellList_size(clock->entries, &numEntries);
+    DBELL_ERROR ret = dbellList_size(&clock->entries, &numEntries);
     if(ret)
     {
         return ret;
@@ -380,6 +408,11 @@ dbell_process(dbell_clock_t* clock)
         checkEntryData_t entryCheck;
         entryCheck.clock = clock;
         entryCheck.timeinfo = timeinfo;
+
+        //TODO: check return
+        dbellList_forEach((dbellContainer_t*)&clock->entries,
+                          (dbellList_forEachFunc)checkEachEntry,
+                          &entryCheck);
     }
 
     return ret;

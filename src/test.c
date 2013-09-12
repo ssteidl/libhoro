@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "Parser.h"
+#include "doorbell.h"
 
 static void 
 usage()
@@ -9,19 +9,39 @@ usage()
     fprintf(stderr, "test 'cronstring' \n");
 }
 
+static void
+action(void* action)
+{
+    fprintf(stdout, "Action occurred\n");
+}
+
 int
 main(int argc, char** argv)
 {
-    if(argc != 2)
+    /* if(argc != 2) */
+    /* { */
+    /*     usage(); */
+    /*     exit(EXIT_FAILURE); */
+    /* } */
+
+    dbell_clock_t* clock;
+    DBELL_ERROR err = dbell_init(&clock);
+    if(err)
     {
-        usage();
+        fprintf(stderr, "error dbell_init: %d\n", err);
         exit(EXIT_FAILURE);
     }
 
-    CronVals cronVals;
-    processCronString(argv[1], &cronVals);
+    int actionID = 0;
+    err = dbell_scheduleAction(clock, "1-60 10-23", action, NULL, &actionID);
+    if(err)
+    {
+        fprintf(stderr, "error dbell_scheduleAction: %d\n", err);
+        exit(EXIT_FAILURE);
+    }
 
-    fprintf(stderr, "Hours: %d, Minutes: %d\n",
-            (uint32_t)(cronVals.minute),
-            (uint32_t)(cronVals.hour));
+    while(1)
+    {
+        dbell_process(clock);
+    }
 }
