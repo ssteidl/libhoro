@@ -2,6 +2,7 @@
 
 %{
 #include "cron.h"
+#include "doorbell.h"
 #include "Parser.h"
 
     void *doorbellParserAlloc(void* (*mallocProc)(size_t));
@@ -21,18 +22,20 @@
 "@daily" {return DAILY; }
 %%
 
-void processCronString(char const* string, CronVals* oCronVals)
+DBELL_ERROR 
+processCronString(char const* string, CronVals* oCronVals)
 {
     void* dbellParser = doorbellParserAlloc(malloc);
     if(dbellParser == NULL)
     {
-        fprintf(stderr, "NULL Parser");
+        return DBELL_ERROR_ILLEGAL_ARG;
     }
 
     //doorbellParserTrace(stderr, "dbell");
     Token theToken;
     memset(oCronVals, 0, sizeof(CronVals));
     yy_scan_string(string);
+    DBELL_ERROR ret = DBELL_SUCCESS;
     while(1)
     {
         memset(&theToken, 0, sizeof(Token));
@@ -41,6 +44,11 @@ void processCronString(char const* string, CronVals* oCronVals)
         if(!token)
         {
             doorbellParser(dbellParser, 0, theToken, oCronVals);
+            if(oCronVals->error != DBELL_PARSER_SUCCESS)
+            {
+                ret = DBELL_ERROR_PARSER;
+                break;
+            }
             break;
         }
                 
@@ -56,8 +64,14 @@ void processCronString(char const* string, CronVals* oCronVals)
             break;
         }
         doorbellParser(dbellParser, token, theToken, oCronVals);
+        if(oCronVals->error != DBELL_PARSER_SUCCESS)
+        {
+            ret = DBELL_ERROR_PARSER;
+            break;
+        }
     }
 
     doorbellParserFree(dbellParser, free);
+    return ret;
 }
 

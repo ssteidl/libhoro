@@ -10,9 +10,10 @@
 %name doorbellParser
 
 %include {
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
-#include "doorbell.h"
+#include "Parser.h"
 
 void assert(char assertion)
 {}
@@ -30,38 +31,50 @@ cronstring ::= DAILY.
 
 cronstring ::= cronfield(CF1) space cronfield(CF2). {
 
-    cronVals->minute = CF1;
-    cronVals->hour = CF2;
+    cronVals->minute = CF1.val;
+    cronVals->hour = CF2.val;
 }
 
 space ::= SPACE. 
 
-%type cronfield {uint64_t}
+%type cronfield {CronField}
 cronfield ::= ASTERISK.
 cronfield ::= list COMMA rangelist. 
 cronfield ::= list COMMA range. 
 cronfield ::= list COMMA step. 
-cronfield ::= list. 
-cronfield ::= asteriskstep. 
-cronfield ::= step. 
-cronfield ::= rangelist.
+cronfield ::= list.
+
+cronfield(CF) ::= asteriskstep(AS). {
+
+    memset(&CF, 0, sizeof(CF));
+    CF.isAsterisk = 1;
+    CF.asteriskStep = AS.step;
+} 
+
+cronfield(CF) ::= step(S). {
+
+    memset(&CF, 0, sizeof(CF));
+    cronFieldFromRange(&S, &CF);
+}
+cronfield(CF) ::= rangelist(RL). {
+
+    memset(&CF, 0, sizeof(CF));
+    cronFieldFromRangeList(&RL, &CF);
+}
 
 cronfield(CF) ::= range(R). {
 
-    CF = 0;
-    int i = R.start;
-    for(; i <= R.stop; i += R.step)
-    {
-        CF |= (1 << i);
-    }
+    memset(&CF, 0, sizeof(CF));
+    cronFieldFromRange(&R, &CF);
 }
        
 cronfield(CF) ::= number(N). {
 
+    memset(&CF, 0, sizeof(CF));
     fprintf(stderr, "Number: %d\n", N);
     //TODO: Validation on number
-    CF = 0;
-    CF = (1 << N);
+ 
+    CF.val = (1 << N);
 }
 
 %type rangelist {RangeList}
@@ -104,9 +117,8 @@ rangelist(RL) ::= range(R1) COMMA range(R2). {
 %type asteriskstep {Range}
 asteriskstep(S) ::= ASTERISK STEP number(N). {
 
-    /*TODO: This needs to be based on context*/
-    S.start = 1;
-    S.stop = 31;
+    S.start = -1;
+    S.stop = INT_MAX;
     S.step = N;
 }
 

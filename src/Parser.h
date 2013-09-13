@@ -1,6 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include "doorbell.h"
 #include <stdint.h>
   
 struct Token
@@ -32,15 +33,52 @@ struct RangeList
 };
 typedef struct RangeList RangeList;
 
+struct CronField
+{
+    uint64_t val;
+    int isAsterisk;
+    int asteriskStep;
+    int hasError;
+};
+typedef struct CronField CronField;
+
+typedef enum
+{
+    DBELL_PARSER_SUCCESS = 0x0,
+    DBELL_PARSER_ERR_MINUTE_RANGE,
+    DBELL_PARSER_ERR_HOUR_RANGE,
+    DBELL_PARSER_ERR_DOM_RANGE,
+    DBELL_PARSER_ERR_MONTH_RANGE,
+    DBELL_PARSER_ERR_DOW_RANGE
+}DBELL_PARSER_ERROR_e;
+  
 struct CronVals
 {
     uint64_t minute;
-    uint64_t  hour;
+    uint64_t hour;
     uint64_t dayOfMonth;
     uint64_t month;
     uint64_t dayOfWeek;
+
+    DBELL_PARSER_ERROR_e error;
 };
 typedef struct CronVals CronVals;
-  
-void processCronString(char const* string, CronVals* oCronVals);
+
+int 
+isValidCronVal(int cronVal);
+
+int 
+isValidMinute(int minute);
+
+int 
+isValidHour(int hour);
+
+void
+cronFieldFromRange(Range const* range, CronField* cronField);
+
+void
+cronFieldFromRangeList(RangeList const* rangeList, CronField* cronField);
+
+DBELL_ERROR 
+processCronString(char const* string, CronVals* oCronVals);
 #endif

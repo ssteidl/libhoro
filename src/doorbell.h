@@ -2,7 +2,6 @@
 #define DOORBELL_H
 
 #include <inttypes.h>
-#include "Parser.h"
 
 typedef enum
 {
@@ -10,7 +9,8 @@ typedef enum
     DBELL_ERROR_ILLEGAL_ARG = 0x1,
     DBELL_ERROR_NO_MEM = 0x2,
     DBELL_ERROR_NOT_INITIALIZED = 0x3,
-    DBELL_ERROR_CORRUPT = 0x4
+    DBELL_ERROR_CORRUPT = 0x4,
+    DBELL_ERROR_PARSER = 0x5
 }DBELL_ERROR;
 
 typedef void (*dbell_actionFunc)(void* actionData);
