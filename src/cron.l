@@ -16,7 +16,6 @@
 "-" {return DASH; }
 "," {return COMMA; }
 "@yearly" {return YEARLY; }
-"@annually" {return ANNUALLY; }
 "@monthly" {return MONTHLY; }
 "@weekly" {return WEEKLY; }
 "@daily" {return DAILY; }

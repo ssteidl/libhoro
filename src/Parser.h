@@ -74,6 +74,9 @@ int
 isValidHour(int hour);
 
 void
+cronFieldFromList(List const* list, CronField* cronField);
+
+void
 cronFieldFromRange(Range const* range, CronField* cronField);
 
 void

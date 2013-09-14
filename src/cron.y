@@ -10,39 +10,92 @@
 %name doorbellParser
 
 %include {
+
+#include <assert.h>
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include "Parser.h"
 
-void assert(char assertion)
-{}
-
 }//end %include
 
-//A cronfield is a grouping of cron elements
-//A cron element is a list, range, weekday or special string
+cronstring ::= YEARLY. {
 
-cronstring ::= YEARLY.
-cronstring ::= ANNUALLY.
-cronstring ::= MONTHLY.
-cronstring ::= WEEKLY.
-cronstring ::= DAILY. 
+    cronVals->minute = 0;
+    cronVals->hour = 0;
+    cronVals->dayOfMonth = 1;
+    cronVals->month = 1;
+    cronVals->dayOfWeek = 0xFFFFFFFF;
+}
 
-cronstring ::= cronfield(CF1) space cronfield(CF2). {
+cronstring ::= MONTHLY. {
+
+    cronVals->minute = 0;
+    cronVals->hour = 0;
+    cronVals->dayOfMonth = 1;
+    cronVals->month = 0xFFFFFFFF;
+    cronVals->dayOfWeek = 0xFFFFFFFF;
+}
+
+cronstring ::= WEEKLY. {
+
+    cronVals->minute = 0;
+    cronVals->hour = 0;
+    cronVals->dayOfMonth = 0xFFFFFFFF;
+    cronVals->month = 0xFFFFFFFF;
+    cronVals->dayOfWeek = 0;
+}
+
+cronstring ::= DAILY. {
+
+    cronVals->minute = 0;
+    cronVals->hour = 0;
+    cronVals->dayOfMonth = 0xFFFFFFFF;
+    cronVals->month = 0xFFFFFFFF;
+    cronVals->dayOfWeek = 0xFFFFFFFF;
+}
+
+cronstring ::= cronfield(CF1) SPACE cronfield(CF2). {
 
     cronVals->minute = CF1.val;
     cronVals->hour = CF2.val;
 }
 
-space ::= SPACE. 
-
 %type cronfield {CronField}
-cronfield ::= ASTERISK.
-cronfield ::= list COMMA rangelist. 
-cronfield ::= list COMMA range. 
-cronfield ::= list COMMA step. 
-cronfield ::= list.
+
+cronfield(CF) ::= ASTERISK. {
+
+    memset(&CF, 0, sizeof(CF));
+    CF.isAsterisk=1;
+}
+
+cronfield(CF) ::= list(L) COMMA rangelist(RL). {
+
+    memset(&CF, 0, sizeof(CF));
+    cronFieldFromList(&L, &CF);
+    cronFieldFromRangeList(&RL, &CF); 
+} 
+
+cronfield(CF) ::= list(L) COMMA range(R). {
+
+    memset(&CF, 0, sizeof(CF));
+    cronFieldFromList(&L, &CF);
+    cronFieldFromRange(&R, &CF); 
+}
+
+cronfield(CF) ::= list(L) COMMA step(S). {
+
+    memset(&CF, 0, sizeof(CF));
+    cronFieldFromList(&L, &CF);
+    cronFieldFromRange(&S, &CF); 
+}
+
+ 
+cronfield(CF) ::= list(L). {
+
+    memset(&CF, 0, sizeof(CF));
+    cronFieldFromList(&L, &CF);
+}
 
 cronfield(CF) ::= asteriskstep(AS). {
 
@@ -167,5 +220,6 @@ number(NUM) ::= numString(NUM_STRING). {
 }
 
 numString(A) ::= NUMBER(B). {
+
     A = B;
 }
