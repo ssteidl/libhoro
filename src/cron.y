@@ -21,44 +21,57 @@
 
 cronstring ::= YEARLY. {
 
-    cronVals->minute = 0;
-    cronVals->hour = 0;
-    cronVals->dayOfMonth = 1;
-    cronVals->month = 1;
-    cronVals->dayOfWeek = 0xFFFFFFFF;
+    cronVals->minute = 1 << 0;
+    cronVals->hour = 1 << 0;
+    cronVals->dayOfMonth = 1 << 1;
+    cronVals->month = 1 << 1;
+    cronVals->dayOfWeek = DBELL_ASTERISK;
 }
 
 cronstring ::= MONTHLY. {
 
-    cronVals->minute = 0;
-    cronVals->hour = 0;
-    cronVals->dayOfMonth = 1;
-    cronVals->month = 0xFFFFFFFF;
-    cronVals->dayOfWeek = 0xFFFFFFFF;
+    cronVals->minute = 1 << 0;
+    cronVals->hour = 1 << 0;
+    cronVals->dayOfMonth = 1 << 1;
+    cronVals->month = DBELL_ASTERISK;
+    cronVals->dayOfWeek = DBELL_ASTERISK;
 }
 
 cronstring ::= WEEKLY. {
 
-    cronVals->minute = 0;
-    cronVals->hour = 0;
-    cronVals->dayOfMonth = 0xFFFFFFFF;
-    cronVals->month = 0xFFFFFFFF;
-    cronVals->dayOfWeek = 0;
+    cronVals->minute = 1 << 0;
+    cronVals->hour = 1 << 0;
+    cronVals->dayOfMonth = DBELL_ASTERISK;
+    cronVals->month = DBELL_ASTERISK;
+    cronVals->dayOfWeek = 1 << 0;
 }
 
 cronstring ::= DAILY. {
 
-    cronVals->minute = 0;
-    cronVals->hour = 0;
-    cronVals->dayOfMonth = 0xFFFFFFFF;
-    cronVals->month = 0xFFFFFFFF;
-    cronVals->dayOfWeek = 0xFFFFFFFF;
+    cronVals->minute = 1 << 0;
+    cronVals->hour = 1 << 0;
+    cronVals->dayOfMonth = DBELL_ASTERISK;
+    cronVals->month = DBELL_ASTERISK;
+    cronVals->dayOfWeek = DBELL_ASTERISK;
 }
 
-cronstring ::= cronfield(CF1) SPACE cronfield(CF2). {
+cronstring ::= HOURLY. {
+
+    cronVals->minute = 1 << 0;
+    cronVals->hour = DBELL_ASTERISK;
+    cronVals->dayOfMonth = DBELL_ASTERISK;
+    cronVals->month = DBELL_ASTERISK;
+    cronVals->dayOfWeek = DBELL_ASTERISK;
+}
+
+cronstring ::= cronfield(CF1) SPACE cronfield(CF2) SPACE cronfield(CF3) 
+               cronfield(CF4) SPACE cronfield(CF5). {
 
     cronVals->minute = CF1.val;
     cronVals->hour = CF2.val;
+    cronVals->dayOfMonth = CF3.val;
+    cronVals->month = CF4.val;
+    cronVals->dayOfWeek = CF5.val;
 }
 
 %type cronfield {CronField}

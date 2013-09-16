@@ -5,11 +5,16 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
   
 #define RETURN_ILLEGAL_IF(statement) if((statement)) return DBELL_ERROR_ILLEGAL_ARG
+
+#define VALIDATE_RANGE_OR_RETURN(var, min, max)  \
+    if(((var) < (min)) || ((var) > (max))) return DBELL_ERROR_OUT_OF_RANGE
+
 #define IS_INITIALIZED(container) ((container)->initKey == INITIALIZED_KEY)
+
 #define RETURN_IF_NOT_INITIALIZED(container) if(!IS_INITIALIZED((container))) return DBELL_ERROR_NOT_INITIALIZED
+
 
 typedef enum
 {
@@ -283,13 +288,9 @@ struct dbell_entry
 {
     uint64_t id;
     
-    uint64_t minute;
-    uint32_t hour;
-    uint32_t dayOfMonth;
-    uint16_t month;
-    uint8_t dayOfWeek;
+    CronVals scheduleVals;    
 
-    struct tm lastRuntime;
+    dbell_time_t lastRuntime;
   
     dbell_actionFunc action;
     void *actionData;
@@ -301,7 +302,7 @@ struct dbell_clock
 {
     dbellList_t entries;
 
-    time_t lastTick;
+    dbell_time_t lastTick;
     uint64_t nextActionID;
 };
 
@@ -330,11 +331,11 @@ dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString,
     processCronString(scheduleString, &cronVals);
 
     newEntry->id = clock->nextActionID++;
-    newEntry->minute = cronVals.minute;
-    newEntry->hour = cronVals.hour;
-    newEntry->dayOfMonth = cronVals.dayOfMonth;
-    newEntry->month = cronVals.month;
-    newEntry->dayOfWeek = cronVals.dayOfWeek;
+    newEntry->scheduleVals.minute = cronVals.minute;
+    newEntry->scheduleVals.hour = cronVals.hour;
+    newEntry->scheduleVals.dayOfMonth = cronVals.dayOfMonth;
+    newEntry->scheduleVals.month = cronVals.month;
+    newEntry->scheduleVals.dayOfWeek = cronVals.dayOfWeek;
 
     memset(&newEntry->lastRuntime, 0, sizeof(newEntry->lastRuntime));
     
@@ -351,22 +352,68 @@ DONE:
 typedef struct
 {
     dbell_clock_t* clock;
-    struct tm* timeinfo;
+    dbell_time_t const* userTime;
 }checkEntryData_t;
+
+static int
+checkDOMWithDOW(uint64_t dayOfMonth, uint64_t dayOfWeek, 
+                dbell_time_t const* timeVals)
+{
+    if((dayOfMonth == DBELL_ASTERISK) &&
+       (dayOfWeek == DBELL_ASTERISK))
+    {
+        return 1;
+    }
+
+    if((dayOfMonth != DBELL_ASTERISK) &&
+       (dayOfWeek != DBELL_ASTERISK))
+    {
+        if((dayOfWeek & (1 << timeVals->dayOfWeek)) &&
+           (dayOfMonth & (1 << timeVals->dayOfMonth)))
+        {
+            return 1;
+        }
+    }
+
+    if(dayOfMonth == DBELL_ASTERISK)
+    {
+        if(dayOfWeek & (1 << timeVals->dayOfWeek))
+        {
+            return 1;
+        }
+    }
+
+    if(dayOfWeek == DBELL_ASTERISK)
+    {
+        if(dayOfMonth & (1 << timeVals->dayOfMonth))
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
 
 static DBELL_ERROR
 checkEachEntry(dbell_entry_t* entry, checkEntryData_t* checkEntryData)
 {
-    struct tm* timeinfo = checkEntryData->timeinfo;
-    if((entry->minute & (1 << timeinfo->tm_min)) &&
-       (entry->hour & (1 << timeinfo->tm_hour)))
+    dbell_time_t const* userTime = checkEntryData->userTime;
+    if((entry->scheduleVals.minute & (1 << userTime->minute)) &&
+       (entry->scheduleVals.hour & (1 << userTime->hour)) && 
+       (entry->scheduleVals.month & (1 << userTime->month)) &&
+       checkDOMWithDOW(entry->scheduleVals.dayOfMonth,
+                       entry->scheduleVals.dayOfWeek,
+                       userTime))
     {
-        struct tm* lastRuntime = &entry->lastRuntime;
-        if(lastRuntime->tm_min != timeinfo->tm_min ||
-           lastRuntime->tm_hour != timeinfo->tm_hour)
+        dbell_time_t const* lastRuntime = &entry->lastRuntime;
+        if((lastRuntime->minute != userTime->minute) ||
+           (lastRuntime->hour != userTime->hour) ||
+           (lastRuntime->dayOfMonth != userTime->dayOfMonth) ||
+           (lastRuntime->month != userTime->month) ||
+           (lastRuntime->dayOfWeek != userTime->dayOfWeek))
         {
             entry->action(entry->actionData);
-            entry->lastRuntime = *timeinfo;
+            entry->lastRuntime = *userTime;
         }
     }
 
@@ -378,20 +425,28 @@ dbell_init(dbell_clock_t** oClock)
 {
     RETURN_ILLEGAL_IF(oClock == NULL);
 
+    //TODO: Add callback for memory allocation
     *oClock = malloc(sizeof(dbell_clock_t));
     if(*oClock == NULL)
     {
         return DBELL_ERROR_NO_MEM;
     }
     
-    (*oClock)->lastTick=0;
+    memset(&(*oClock)->lastTick, 0, sizeof((*oClock)->lastTick));
     (*oClock)->nextActionID=0;
     return dbellList_init(&(*oClock)->entries);
 }
 
 DBELL_ERROR
-dbell_process(dbell_clock_t* clock)
+dbell_process(dbell_clock_t* clock, dbell_time_t const* userTime)
 {
+
+    VALIDATE_RANGE_OR_RETURN(userTime->minute, 0, 59);
+    VALIDATE_RANGE_OR_RETURN(userTime->hour, 0, 23);
+    VALIDATE_RANGE_OR_RETURN(userTime->dayOfMonth, 1, 31);
+    VALIDATE_RANGE_OR_RETURN(userTime->month, 1, 12);
+    VALIDATE_RANGE_OR_RETURN(userTime->minute, 0, 7);
+
     size_t numEntries = 0;
     DBELL_ERROR ret = dbellList_size(&clock->entries, &numEntries);
     if(ret)
@@ -401,21 +456,25 @@ dbell_process(dbell_clock_t* clock)
 
     if(numEntries > 0)
     {
-        time_t currentTime;
-        memset(&currentTime, 0, sizeof(currentTime));
-
-        currentTime = time(NULL);
-        struct tm* timeinfo = localtime(&currentTime);
-
         checkEntryData_t entryCheck;
         entryCheck.clock = clock;
-        entryCheck.timeinfo = timeinfo;
+        entryCheck.userTime = userTime;
 
         //TODO: check return
         dbellList_forEach((dbellContainer_t*)&clock->entries,
                           (dbellList_forEachFunc)checkEachEntry,
                           &entryCheck);
+
+        clock->lastTick = *userTime;
     }
 
     return ret;
+}
+
+DBELL_ERROR
+dbell_destroy(dbell_clock_t* clock)
+{
+    RETURN_ILLEGAL_IF(clock == NULL);
+    dbellList_destroyNodes(&clock->entries);
+    free(clock);
 }

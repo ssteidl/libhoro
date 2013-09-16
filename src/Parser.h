@@ -51,7 +51,7 @@ typedef enum
     DBELL_PARSER_ERR_MONTH_RANGE,
     DBELL_PARSER_ERR_DOW_RANGE
 }DBELL_PARSER_ERROR_e;
-  
+
 struct CronVals
 {
     uint64_t minute;
@@ -63,7 +63,7 @@ struct CronVals
     DBELL_PARSER_ERROR_e error;
 };
 typedef struct CronVals CronVals;
-
+  
 int 
 isValidCronVal(int cronVal);
 

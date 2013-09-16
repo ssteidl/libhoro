@@ -24,5 +24,4 @@ libdoorbell.o: cron.o doorbell.c
 dbelltest: test.c libdoorbell.o lex.yy.o Parser.o
 	gcc -g -O0 -o dbelltest test.c libdoorbell.o cron.o lex.yy.o Parser.o
 clean: 
-	rm -vf lemon.exe lex.yy.c lex.yy.o *~ cron.o cron.c cron.h cron.out \
-	libdoorbell.o dbelltest
+	rm -vf lemon.exe lex.yy.c *.o *~ dbelltest.exe

@@ -19,6 +19,7 @@
 "@monthly" {return MONTHLY; }
 "@weekly" {return WEEKLY; }
 "@daily" {return DAILY; }
+"@hourly" {return HOURLY; }
 %%
 
 DBELL_ERROR 
@@ -43,11 +44,11 @@ processCronString(char const* string, CronVals* oCronVals)
         if(!token)
         {
             doorbellParser(dbellParser, 0, theToken, oCronVals);
-            if(oCronVals->error != DBELL_PARSER_SUCCESS)
-            {
-                ret = DBELL_ERROR_PARSER;
-                break;
-            }
+            /* if(oCronVals->error != DBELL_PARSER_SUCCESS) */
+            /* { */
+            /*     ret = DBELL_ERROR_PARSER; */
+            /*     break; */
+            /* } */
             break;
         }
                 
@@ -63,11 +64,11 @@ processCronString(char const* string, CronVals* oCronVals)
             break;
         }
         doorbellParser(dbellParser, token, theToken, oCronVals);
-        if(oCronVals->error != DBELL_PARSER_SUCCESS)
-        {
-            ret = DBELL_ERROR_PARSER;
-            break;
-        }
+        /* if(oCronVals->error != DBELL_PARSER_SUCCESS) */
+        /* { */
+        /*     ret = DBELL_ERROR_PARSER; */
+        /*     break; */
+        /* } */
     }
 
     doorbellParserFree(dbellParser, free);
