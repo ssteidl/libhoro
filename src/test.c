@@ -23,7 +23,6 @@ usage()
 static void
 action(void* actionData)
 {
-    fprintf(stdout, "Action occurred\n");
     testData_t* testData = (testData_t*)actionData;
 
     //Clear the error
@@ -86,11 +85,12 @@ testSpecialStrings()
     expectError = 1;
     runTest("@daily", 1, 2, 1, 2, 0, expectError);
 
-    /* //@hourly */
-    /* runTest("@hourly", 0, 1, 1, 2, 0, expectError); */
-    /* runTest("@hourly", 0, 2, 1, 2, 0, expectError); */
-    /* expectError = 1; */
-    /* runTest("@hourly", 1, 2, 1, 2, 0, expectError); */
+    //@weekly
+    expectError = 0;
+    runTest("@weekly", 0, 0, 1, 2, 0, expectError);
+    runTest("@weekly", 0, 0, 2, 3, 0, expectError);
+    expectError = 1;
+    runTest("@weekly", 1, 2, 1, 2, 6, expectError);
 
     /* //@hourly */
     /* runTest("@hourly", 0, 1, 1, 2, 0, expectError); */
@@ -100,6 +100,19 @@ testSpecialStrings()
 
     /* runTest("@daily", 0, 0, 2, 1, 1); */
     /* runTest("@weekly", 0, 0, 1, 1, 0); */
+}
+
+void
+testLists()
+{
+    int expectError = 0;
+    runTest("0,1,2,3,4 * * * *", 0, 0, 1, 2, 0, expectError);
+    runTest("0,1,2,3,4 * * * *", 1, 0, 1, 2, 0, expectError);
+    runTest("0,1,2,3,4 * * * *", 2, 0, 1, 2, 0, expectError);
+    runTest("0,1,2,3,4 * * * *", 3, 0, 1, 2, 0, expectError);
+
+    expectError = 1;
+    runTest("0,1,2,3,4 * * * *", 5, 0, 1, 1, 0, expectError);
 }
 
 int
@@ -113,5 +126,6 @@ main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    testSpecialStrings();
+    /* testSpecialStrings(); */
+    testLists();
 }

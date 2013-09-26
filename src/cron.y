@@ -67,11 +67,13 @@ cronstring ::= HOURLY. {
 cronstring ::= cronfield(CF1) SPACE cronfield(CF2) SPACE cronfield(CF3) 
                cronfield(CF4) SPACE cronfield(CF5). {
 
-    cronVals->minute = CF1.val;
-    cronVals->hour = CF2.val;
-    cronVals->dayOfMonth = CF3.val;
-    cronVals->month = CF4.val;
-    cronVals->dayOfWeek = CF5.val;
+    //TODO: check CF.isAsterisk to set step.
+
+    cronVals->minute = (CF1.isAsterisk)? DBELL_ASTERISK : CF1.val;
+    cronVals->hour = (CF2.isAsterisk)? DBELL_ASTERISK : CF2.val;
+    cronVals->dayOfMonth = (CF3.isAsterisk)? DBELL_ASTERISK : CF3.val;
+    cronVals->month = (CF4.isAsterisk)? DBELL_ASTERISK : CF4.val;
+    cronVals->dayOfWeek = (CF5.isAsterisk)? DBELL_ASTERISK : CF5.val;
 }
 
 %type cronfield {CronField}
