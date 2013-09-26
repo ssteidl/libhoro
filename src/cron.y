@@ -65,7 +65,7 @@ cronstring ::= HOURLY. {
 }
 
 cronstring ::= cronfield(CF1) SPACE cronfield(CF2) SPACE cronfield(CF3) 
-               cronfield(CF4) SPACE cronfield(CF5). {
+               SPACE cronfield(CF4) SPACE cronfield(CF5). {
 
     //TODO: check CF.isAsterisk to set step.
 

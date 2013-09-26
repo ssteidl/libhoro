@@ -93,13 +93,11 @@ testSpecialStrings()
     runTest("@weekly", 1, 2, 1, 2, 6, expectError);
 
     /* //@hourly */
-    /* runTest("@hourly", 0, 1, 1, 2, 0, expectError); */
-    /* runTest("@hourly", 0, 2, 1, 2, 0, expectError); */
-    /* expectError = 1; */
-    /* runTest("@hourly", 1, 2, 1, 2, 0, expectError); */
-
-    /* runTest("@daily", 0, 0, 2, 1, 1); */
-    /* runTest("@weekly", 0, 0, 1, 1, 0); */
+    expectError = 0;
+    runTest("@hourly", 0, 1, 1, 2, 0, expectError);
+    runTest("@hourly", 0, 2, 1, 2, 0, expectError);
+    expectError = 1;
+    runTest("@hourly", 1, 2, 1, 2, 0, expectError);
 }
 
 void
@@ -126,6 +124,6 @@ main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    /* testSpecialStrings(); */
+    testSpecialStrings();
     testLists();
 }
