@@ -221,17 +221,20 @@ range(R) ::= number(START) DASH number(STOP). {
 %type number {int}
 number(NUM) ::= numString(NUM_STRING). {
         
-    if(NUM_STRING.length > 3)
+    NUM = -1;
+    if(NUM_STRING.length <= 3)
     {
-        fprintf(stderr, "Number to large");
-        return;
+        char numStr[NUM_STRING.length + 1];
+        numStr[NUM_STRING.length] = '\0';
+        
+        memcpy(numStr, NUM_STRING.string, NUM_STRING.length);
+        
+        NUM = atoi(numStr);   
     }
-    char numStr[NUM_STRING.length + 1];
-    numStr[NUM_STRING.length] = '\0';
-        
-    memcpy(numStr, NUM_STRING.string, NUM_STRING.length);
-        
-    NUM = atoi(numStr);
+    else
+    {
+        cronVals->error = DBELL_ERROR_PARSER_ILLEGAL_FIELD;
+    }
 }
 
 numString(A) ::= NUMBER(B). {

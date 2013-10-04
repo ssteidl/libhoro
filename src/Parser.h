@@ -42,16 +42,6 @@ struct CronField
 };
 typedef struct CronField CronField;
 
-typedef enum
-{
-    DBELL_PARSER_SUCCESS = 0x0,
-    DBELL_PARSER_ERR_MINUTE_RANGE,
-    DBELL_PARSER_ERR_HOUR_RANGE,
-    DBELL_PARSER_ERR_DOM_RANGE,
-    DBELL_PARSER_ERR_MONTH_RANGE,
-    DBELL_PARSER_ERR_DOW_RANGE
-}DBELL_PARSER_ERROR_e;
-
 struct CronVals
 {
     uint64_t minute;
@@ -60,7 +50,7 @@ struct CronVals
     uint64_t month;
     uint64_t dayOfWeek;
 
-    DBELL_PARSER_ERROR_e error;
+    DBELL_ERROR error;
 };
 typedef struct CronVals CronVals;
   

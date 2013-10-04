@@ -113,6 +113,16 @@ testLists()
     runTest("0,1,2,3,4 * * * *", 5, 0, 1, 1, 0, expectError);
 }
 
+void
+testRanges()
+{
+    int expectError = 0;
+    runTest("* 8-10 * * *", 7, 8, 10, 11, 12, expectError);
+
+    expectError = 1;
+    runTest("* 1-1000 * * *", 7, 8, 10, 11, 12, expectError);
+}
+
 int
 main(int argc, char** argv)
 {
@@ -126,4 +136,5 @@ main(int argc, char** argv)
 
     testSpecialStrings();
     testLists();
+    testRanges();
 }

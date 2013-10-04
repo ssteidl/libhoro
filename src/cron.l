@@ -31,7 +31,7 @@ processCronString(char const* string, CronVals* oCronVals)
         return DBELL_ERROR_ILLEGAL_ARG;
     }
 
-    //doorbellParserTrace(stderr, "dbell");
+    doorbellParserTrace(stderr, "dbell");
     Token theToken;
     memset(oCronVals, 0, sizeof(CronVals));
     yy_scan_string(string);
@@ -43,12 +43,12 @@ processCronString(char const* string, CronVals* oCronVals)
         int token = yylex();
         if(!token)
         {
+            //If there are no more tokens, we need to call the parser one last time.
             doorbellParser(dbellParser, 0, theToken, oCronVals);
-            /* if(oCronVals->error != DBELL_PARSER_SUCCESS) */
-            /* { */
-            /*     ret = DBELL_ERROR_PARSER; */
-            /*     break; */
-            /* } */
+            if(oCronVals->error != DBELL_SUCCESS)
+            {
+                ret = oCronVals->error;
+            }
             break;
         }
                 
@@ -60,15 +60,15 @@ processCronString(char const* string, CronVals* oCronVals)
         }
         else
         {
-            //TODO: Error handling
+            ret = DBELL_ERROR_PARSER_ILLEGAL_FIELD;
             break;
         }
         doorbellParser(dbellParser, token, theToken, oCronVals);
-        /* if(oCronVals->error != DBELL_PARSER_SUCCESS) */
-        /* { */
-        /*     ret = DBELL_ERROR_PARSER; */
-        /*     break; */
-        /* } */
+        if(oCronVals->error != DBELL_SUCCESS)
+        {
+            ret = oCronVals->error;
+            break;
+        }
     }
 
     doorbellParserFree(dbellParser, free);
