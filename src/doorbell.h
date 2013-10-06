@@ -1,7 +1,7 @@
 #ifndef DOORBELL_H
 #define DOORBELL_H
 
-#include <inttypes.h>
+#include <stdint.h>
 
 typedef enum
 {
@@ -19,7 +19,7 @@ typedef enum
     DBELL_ERROR_OUT_OF_RANGE = 0xB
 }DBELL_ERROR;
 
-#define DBELL_ASTERISK 0xFFFFFFFFFFFFFFFF
+#define DBELL_ASTERISK (uint64_t)0xFFFFFFFFFFFFFFFF
 
 struct dbell_time
 {

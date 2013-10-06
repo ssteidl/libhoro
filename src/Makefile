@@ -1,7 +1,13 @@
+ifeq ($(OS), Windows_NT)
+	EXE := .exe	
+else
+	EXE :=
+endif
+
 all: libdoorbell.o dbelltest
 
-lemon: lemon.c
-	gcc -o lemon.exe lemon.c
+lemon$(EXE): lemon.c
+	gcc -o lemon$(EXE) lemon.c
 
 lex.yy.c: cron.l Parser.h
 	flex cron.l
@@ -13,7 +19,7 @@ Parser.o: Parser.h doorbell.h Parser.c
 	gcc -g -O0 -c Parser.c
 
 cron.c: cron.y lemon Parser.h
-	lemon cron.y
+	./lemon cron.y
 
 cron.o: cron.c
 	gcc -g -O0 -c -o cron.o cron.c
@@ -24,4 +30,4 @@ libdoorbell.o: cron.o doorbell.c
 dbelltest: test.c libdoorbell.o lex.yy.o Parser.o
 	gcc -g -O0 -o dbelltest test.c libdoorbell.o cron.o lex.yy.o Parser.o
 clean: 
-	rm -vf lemon.exe lex.yy.c *.o *~ dbelltest.exe
+	rm -vf lemon$(EXE) lex.yy.c *.o *~ dbelltest.exe

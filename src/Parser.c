@@ -1,22 +1,52 @@
 #include "Parser.h"
 
-int 
+static int 
 isValidCronVal(int cronVal)
 {
     //Check if the value fits in a uint64_t
     return ((cronVal >= 0) && (cronVal < 64));
 }
 
-int 
-isValidMinute(int minute)
+static int 
+isValidMinute(uint64_t minute)
 {
-    return ((minute >= 0) && (minute <= 59));
+    return ((minute >= 0) && (minute <= ((uint64_t)1 << 59)));
 }
 
-int 
-isValidHour(int hour)
+static int 
+isValidHour(uint64_t hour)
 {
-    return ((hour >= 0) && (hour <= 23));
+    return ((hour >= 0) && (hour <= (1 << 23)));
+}
+
+static int
+isValidDOM(uint64_t dayOfMonth)
+{
+    return ((dayOfMonth >= 1) && (dayOfMonth <= (1 << 31)));
+}
+
+static int
+isValidMonth(uint64_t month)
+{
+    return ((month >= 1) && (month <= (1 << 12)));
+}
+
+static int 
+isValidDOW(uint64_t dayOfWeek)
+{
+    return ((dayOfWeek >= 1) && (dayOfWeek <= (1 << 31)));
+}
+
+DBELL_ERROR
+validateCronVals(CronVals const* cronVals)
+{
+    if(!isValidMinute(cronVals->minute)) return DBELL_ERROR_PARSER_MINUTE_RANGE;
+    if(!isValidHour(cronVals->hour)) return DBELL_ERROR_PARSER_HOUR_RANGE;
+    if(!isValidDOM(cronVals->dayOfMonth)) return DBELL_ERROR_PARSER_DOM_RANGE;
+    if(!isValidMonth(cronVals->month)) return DBELL_ERROR_PARSER_MONTH_RANGE;
+    if(!isValidDOW(cronVals->dayOfWeek)) return DBELL_ERROR_PARSER_DOW_RANGE;
+
+    return DBELL_SUCCESS;
 }
 
 void

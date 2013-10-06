@@ -74,6 +74,7 @@ cronstring ::= cronfield(CF1) SPACE cronfield(CF2) SPACE cronfield(CF3)
     cronVals->dayOfMonth = (CF3.isAsterisk)? DBELL_ASTERISK : CF3.val;
     cronVals->month = (CF4.isAsterisk)? DBELL_ASTERISK : CF4.val;
     cronVals->dayOfWeek = (CF5.isAsterisk)? DBELL_ASTERISK : CF5.val;
+    cronVals->error = validateCronVals(cronVals);
 }
 
 %type cronfield {CronField}
@@ -139,8 +140,6 @@ cronfield(CF) ::= range(R). {
 cronfield(CF) ::= number(N). {
 
     memset(&CF, 0, sizeof(CF));
-    fprintf(stderr, "Number: %d\n", N);
-    //TODO: Validation on number
  
     CF.val = (1 << N);
 }

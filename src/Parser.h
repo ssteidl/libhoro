@@ -2,8 +2,7 @@
 #define PARSER_H
 
 #include "doorbell.h"
-#include <stdint.h>
-  
+
 struct Token
 {
     char string[64];
@@ -53,15 +52,9 @@ struct CronVals
     DBELL_ERROR error;
 };
 typedef struct CronVals CronVals;
-  
-int 
-isValidCronVal(int cronVal);
 
-int 
-isValidMinute(int minute);
-
-int 
-isValidHour(int hour);
+DBELL_ERROR
+validateCronVals(CronVals const* cronVals);
 
 void
 cronFieldFromList(List const* list, CronField* cronField);
