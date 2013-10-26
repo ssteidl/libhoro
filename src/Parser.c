@@ -10,31 +10,31 @@ isValidCronVal(int cronVal)
 static int 
 isValidMinute(uint64_t minute)
 {
-    return ((minute >= 0) && (minute <= ((uint64_t)1 << 59)));
+    return (minute == DBELL_ASTERISK) || ((minute >= 0) && (minute <= ((uint64_t)1 << 59)));
 }
 
 static int 
 isValidHour(uint64_t hour)
 {
-    return ((hour >= 0) && (hour <= (1 << 23)));
+    return (hour == DBELL_ASTERISK) || ((hour >= 0) && (hour <= (1 << 23)));
 }
 
 static int
 isValidDOM(uint64_t dayOfMonth)
 {
-    return ((dayOfMonth >= 1) && (dayOfMonth <= (1 << 31)));
+    return (dayOfMonth == DBELL_ASTERISK) || ((dayOfMonth >= 1) && (dayOfMonth <= (1 << 31)));
 }
 
 static int
 isValidMonth(uint64_t month)
 {
-    return ((month >= 1) && (month <= (1 << 12)));
+    return (month == DBELL_ASTERISK) || ((month >= 1) && (month <= (1 << 12)));
 }
 
 static int 
 isValidDOW(uint64_t dayOfWeek)
 {
-    return ((dayOfWeek >= 1) && (dayOfWeek <= (1 << 31)));
+    return (dayOfWeek == DBELL_ASTERISK) || ((dayOfWeek >= 1) && (dayOfWeek <= (1 << 31)));
 }
 
 DBELL_ERROR

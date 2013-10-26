@@ -31,7 +31,7 @@ processCronString(char const* string, CronVals* oCronVals)
         return DBELL_ERROR_ILLEGAL_ARG;
     }
 
-    doorbellParserTrace(stderr, "dbell");
+//    doorbellParserTrace(stderr, "dbell");
     Token theToken;
     memset(oCronVals, 0, sizeof(CronVals));
     yy_scan_string(string);
@@ -75,3 +75,7 @@ processCronString(char const* string, CronVals* oCronVals)
     return ret;
 }
 
+
+// Local Variables:
+// mode: c
+// End:
