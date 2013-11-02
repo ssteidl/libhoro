@@ -112,38 +112,47 @@ cronfield(CF) ::= list(L) COMMA step(S). {
 cronfield(CF) ::= list(L). {
 
     memset(&CF, 0, sizeof(CF));
-    cronFieldFromList(&L, &CF);
+    CF.type = DBELL_FIELD_TYPE_LIST;
+    memcpy(&CF.typeVal.list, &L, sizeof(L));
+    //    cronFieldFromList(&L, &CF);
 }
 
 cronfield(CF) ::= asteriskstep(AS). {
 
     memset(&CF, 0, sizeof(CF));
-    CF.isAsterisk = 1;
-    CF.asteriskStep = AS.step;
+    CF.type = DBELL_FIELD_TYPE_ASTERISK;
+    CF.typeVal.asteriskStep = AS.step;
 } 
 
 cronfield(CF) ::= step(S). {
 
     memset(&CF, 0, sizeof(CF));
-    cronFieldFromRange(&S, &CF);
+    CF.type = DBELL_FIELD_TYPE_RANGE;
+    memcpy(&CF.typeVal.range, &S, sizeof(S));
+    //    cronFieldFromRange(&S, &CF);
 }
 cronfield(CF) ::= rangelist(RL). {
 
     memset(&CF, 0, sizeof(CF));
-    cronFieldFromRangeList(&RL, &CF);
+    CF.type = DBELL_FIELD_TYPE_RANGELIST;
+    memcpy(&CF.typeVal.rangeList, &RL, sizeof(RL));
+    //    cronFieldFromRangeList(&RL, &CF);
 }
 
 cronfield(CF) ::= range(R). {
 
     memset(&CF, 0, sizeof(CF));
-    cronFieldFromRange(&R, &CF);
+    CF.type = DBELL_FIELD_TYPE_RANGE;
+    memcpy(&CF.typeVal.range, &R, sizeof(R));
+    //    cronFieldFromRange(&R, &CF);
 }
        
 cronfield(CF) ::= number(N). {
 
     memset(&CF, 0, sizeof(CF));
- 
-    CF.val = (1 << N);
+    CF.type = DBELL_FIELD_TYPE_VALUE;
+    CF.typeVal.value = N;
+    //    CF.val = (1 << N);
 }
 
 %type rangelist {RangeList}

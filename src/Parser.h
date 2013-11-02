@@ -10,6 +10,14 @@ struct Token
 };
 typedef struct Token Token;
     
+enum {
+    DBELL_FIELD_TYPE_VALUE,
+    DBELL_FIELD_TYPE_RANGE,
+    DBELL_FIELD_TYPE_LIST,
+    DBELL_FIELD_TYPE_RANGELIST,
+    DBELL_FIELD_TYPE_ASTERISK
+};
+
 struct Range
 {
     int start;
@@ -34,9 +42,17 @@ typedef struct RangeList RangeList;
 
 struct CronField
 {
+    union
+    {
+        int value;
+        Range range;
+        List list;
+        RangeList rangeList;
+        int asteriskStep;
+    }typeVal;
+    
+    int type;
     uint64_t val;
-    int isAsterisk;
-    int asteriskStep;
     int hasError;
 };
 typedef struct CronField CronField;
