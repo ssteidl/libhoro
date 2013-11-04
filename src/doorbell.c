@@ -445,7 +445,7 @@ dbell_process(dbell_clock_t* clock, dbell_time_t const* userTime)
     VALIDATE_RANGE_OR_RETURN(userTime->hour, 0, 23);
     VALIDATE_RANGE_OR_RETURN(userTime->dayOfMonth, 1, 31);
     VALIDATE_RANGE_OR_RETURN(userTime->month, 1, 12);
-    VALIDATE_RANGE_OR_RETURN(userTime->minute, 0, 7);
+    VALIDATE_RANGE_OR_RETURN(userTime->dayOfWeek, 0, 7);
 
     size_t numEntries = 0;
     DBELL_ERROR ret = dbellList_size(&clock->entries, &numEntries);

@@ -67,16 +67,26 @@ cronstring ::= HOURLY. {
 cronstring ::= cronfield(CF1) SPACE cronfield(CF2) SPACE cronfield(CF3) 
                SPACE cronfield(CF4) SPACE cronfield(CF5). {
 
-    //TODO: check CF.isAsterisk to set step.
+        if((cronVals->error = setCronFieldValues(&CF1, DBELL_POSITION_MINUTE)) ||
+           (cronVals->error = setCronFieldValues(&CF2, DBELL_POSITION_HOUR)) ||
+           (cronVals->error = setCronFieldValues(&CF3, DBELL_POSITION_DOM)) ||
+           (cronVals->error = setCronFieldValues(&CF4, DBELL_POSITION_MONTH)) ||
+           (cronVals->error = setCronFieldValues(&CF5, DBELL_POSITION_DOW)))
+        {
+            /*do nothing*/
+        }
+        else
+        {
 
-    cronVals->minute = (CF1.isAsterisk)? DBELL_ASTERISK : CF1.val;
-    cronVals->hour = (CF2.isAsterisk)? DBELL_ASTERISK : CF2.val;
-    cronVals->dayOfMonth = (CF3.isAsterisk)? DBELL_ASTERISK : CF3.val;
-    cronVals->month = (CF4.isAsterisk)? DBELL_ASTERISK : CF4.val;
-    cronVals->dayOfWeek = (CF5.isAsterisk)? DBELL_ASTERISK : CF5.val;
-    cronVals->error = validateCronVals(cronVals);
-
-    fprintf(stderr, "%d\n", (int)cronVals->error);
+            cronVals->minute = CF1.val;
+            cronVals->hour = CF2.val;
+            cronVals->dayOfMonth = CF3.val;
+            cronVals->month = CF4.val;
+            cronVals->dayOfWeek = CF5.val;
+            cronVals->error = validateCronVals(cronVals);
+            
+            fprintf(stderr, "%d\n", (int)cronVals->error);
+        }
 }
 
 %type cronfield {CronField}
@@ -84,28 +94,37 @@ cronstring ::= cronfield(CF1) SPACE cronfield(CF2) SPACE cronfield(CF3)
 cronfield(CF) ::= ASTERISK. {
 
     memset(&CF, 0, sizeof(CF));
-    CF.isAsterisk=1;
+    CF.type = DBELL_FIELD_TYPE_ASTERISK;
 }
 
 cronfield(CF) ::= list(L) COMMA rangelist(RL). {
 
     memset(&CF, 0, sizeof(CF));
-    cronFieldFromList(&L, &CF);
-    cronFieldFromRangeList(&RL, &CF); 
+    CF.type = DBELL_FIELD_TYPE_LIST | DBELL_FIELD_TYPE_RANGELIST;
+    memcpy(&CF.typeVal.list, &L, sizeof(L));
+    memcpy(&CF.typeVal.range, &RL, sizeof(RL));
+    //    cronFieldFromList(&L, &CF);
+    //    cronFieldFromRangeList(&RL, &CF); 
 } 
 
 cronfield(CF) ::= list(L) COMMA range(R). {
 
     memset(&CF, 0, sizeof(CF));
-    cronFieldFromList(&L, &CF);
-    cronFieldFromRange(&R, &CF); 
+    CF.type = DBELL_FIELD_TYPE_LIST | DBELL_FIELD_TYPE_RANGE;
+    memcpy(&CF.typeVal.list, &L, sizeof(L));
+    memcpy(&CF.typeVal.range, &R, sizeof(R));
+    //    cronFieldFromList(&L, &CF);
+    //    cronFieldFromRange(&R, &CF); 
 }
 
 cronfield(CF) ::= list(L) COMMA step(S). {
 
     memset(&CF, 0, sizeof(CF));
-    cronFieldFromList(&L, &CF);
-    cronFieldFromRange(&S, &CF); 
+    CF.type = DBELL_FIELD_TYPE_LIST | DBELL_FIELD_TYPE_RANGE;
+    memcpy(&CF.typeVal.list, &L, sizeof(L));
+    memcpy(&CF.typeVal.range, &S, sizeof(S));
+    //    cronFieldFromList(&L, &CF);
+    //    cronFieldFromRange(&S, &CF); 
 }
 
  

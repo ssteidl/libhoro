@@ -11,11 +11,11 @@ struct Token
 typedef struct Token Token;
     
 enum {
-    DBELL_FIELD_TYPE_VALUE,
-    DBELL_FIELD_TYPE_RANGE,
-    DBELL_FIELD_TYPE_LIST,
-    DBELL_FIELD_TYPE_RANGELIST,
-    DBELL_FIELD_TYPE_ASTERISK
+    DBELL_FIELD_TYPE_VALUE = 1,
+    DBELL_FIELD_TYPE_RANGE = 2,
+    DBELL_FIELD_TYPE_LIST = 4,
+    DBELL_FIELD_TYPE_RANGELIST = 8,
+    DBELL_FIELD_TYPE_ASTERISK = 16
 };
 
 struct Range
@@ -26,23 +26,27 @@ struct Range
 };
 typedef struct Range Range;
   
+#define MAX_NUMS_IN_LIST 32
 struct List
 {
-    int listNums[32];
+    int listNums[MAX_NUMS_IN_LIST];
     int numCount;
 };
 typedef struct List List;
   
+
+#define MAX_RANGES_IN_RANGELIST 16
 struct RangeList
 {
-    Range ranges[16];
+    Range ranges[MAX_RANGES_IN_RANGELIST];
     int numRanges;
 };
 typedef struct RangeList RangeList;
 
 struct CronField
 {
-    union
+    /*Use a struct instead of union because multiple fields can be set.*/
+    struct 
     {
         int value;
         Range range;
@@ -69,17 +73,17 @@ struct CronVals
 };
 typedef struct CronVals CronVals;
 
+typedef enum
+{
+    DBELL_POSITION_MINUTE,
+    DBELL_POSITION_HOUR,
+    DBELL_POSITION_DOM,
+    DBELL_POSITION_MONTH,
+    DBELL_POSITION_DOW
+}FieldPosition_e;
+
 DBELL_ERROR
-validateCronVals(CronVals const* cronVals);
-
-void
-cronFieldFromList(List const* list, CronField* cronField);
-
-void
-cronFieldFromRange(Range const* range, CronField* cronField);
-
-void
-cronFieldFromRangeList(RangeList const* rangeList, CronField* cronField);
+setCronFieldValues(CronField *cronField, FieldPosition_e position);
 
 DBELL_ERROR 
 processCronString(char const* string, CronVals* oCronVals);
