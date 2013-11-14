@@ -174,8 +174,9 @@ setCronFieldValues(CronField *cronField, FieldPosition_e position)
             {
                 RETURN_POSITION_ERROR(position);
             }
-            cronFieldFromList(&cronField->typeVal.list, cronField);
         }
+        cronFieldFromList(&cronField->typeVal.list, cronField);
     }
 
+    return DBELL_SUCCESS;
 }

@@ -84,8 +84,6 @@ cronstring ::= cronfield(CF1) SPACE cronfield(CF2) SPACE cronfield(CF3)
             cronVals->month = CF4.val;
             cronVals->dayOfWeek = CF5.val;
             cronVals->error = validateCronVals(cronVals);
-            
-            fprintf(stderr, "%d\n", (int)cronVals->error);
         }
 }
 
