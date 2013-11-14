@@ -38,7 +38,9 @@ char *errorStrings[] = {
     "Minute Range Error",
     "Hour Range Error",
     "Day of Month Range Error",
-    "Illegal Field Error",
+    "Month Range Error",
+    "Day of Week Range Error",
+    "Illegal Field",
     "Generic Out of Range Error"
 };
 
@@ -152,10 +154,11 @@ testRanges()
     int expectError = 0;
     DBELL_ERROR scheduleError = DBELL_SUCCESS;
     DBELL_ERROR processError = DBELL_SUCCESS;
-//    runTest("* 8-10 * * *", 7, 8, 10, 11, 6, expectError, scheduleError, processError);
+    runTest("* 8-10 * * *", 7, 8, 10, 11, 6, expectError, scheduleError, processError);
 
     expectError = 1;
-    processError = DBELL_ERROR_PARSER_HOUR_RANGE;
+    scheduleError = DBELL_ERROR_PARSER_HOUR_RANGE; 
+    processError = DBELL_SUCCESS;
     runTest("* 1-1000 * * *", 7, 8, 10, 11, 6, expectError, scheduleError, processError);
 }
 

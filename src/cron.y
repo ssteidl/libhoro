@@ -251,19 +251,14 @@ range(R) ::= number(START) DASH number(STOP). {
 number(NUM) ::= numString(NUM_STRING). {
         
     NUM = -1;
-    if(NUM_STRING.length <= 3)
-    {
-        char numStr[NUM_STRING.length + 1];
-        numStr[NUM_STRING.length] = '\0';
+
+    char numStr[NUM_STRING.length + 1];
+    numStr[NUM_STRING.length] = '\0';
         
-        memcpy(numStr, NUM_STRING.string, NUM_STRING.length);
-        
-        NUM = atoi(numStr);   
-    }
-    else
-    {
-        cronVals->error = DBELL_ERROR_PARSER_ILLEGAL_FIELD;
-    }
+    memcpy(numStr, NUM_STRING.string, NUM_STRING.length);
+    
+    //TODO: I should use strtol so I can check the return code.
+    NUM = atoi(numStr);   
 }
 
 numString(A) ::= NUMBER(B). {
