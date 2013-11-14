@@ -45,7 +45,7 @@ dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString,
                      int* alarmID);
                      
 DBELL_ERROR
-dbell_process(dbell_clock_t* clock, dbell_time_t const* cronVals);
+dbell_process(dbell_clock_t* clock, dbell_time_t const* timeVals);
 
 DBELL_ERROR
 dbell_destroy(dbell_clock_t* clock);

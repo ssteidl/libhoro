@@ -4,7 +4,7 @@ else
 	EXE :=
 endif
 
-all: libdoorbell.o dbelltest
+all: libdoorbell.o dbelltest cronprint
 
 lemon$(EXE): lemon.c
 	gcc -o lemon$(EXE) lemon.c
@@ -29,5 +29,9 @@ libdoorbell.o: cron.o doorbell.c
 
 dbelltest: test.c libdoorbell.o lex.yy.o Parser.o
 	gcc -g -O0 -o dbelltest test.c libdoorbell.o cron.o lex.yy.o Parser.o
+
+cronprint: cronprint.c libdoorbell.o lex.yy.o Parser.o
+	gcc -g -O0 -o cronprint cronprint.c libdoorbell.o cron.o lex.yy.o Parser.o
+
 clean: 
-	rm -vf lemon$(EXE) lex.yy.c *.o *~ dbelltest.exe
+	rm -vf lemon$(EXE) lex.yy.c *.o *~ dbelltest$(EXE) cronprint$(EXE)
