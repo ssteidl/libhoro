@@ -191,6 +191,18 @@ testRanges()
     runTest("* 1-10/2 * 11 *", 7, 8, 10, 11, 6, expectError, scheduleError, processError);
 }
 
+void
+testMisc()
+{
+//   "10-30 1-22/2 14 * *" This guy isn't firing as expected.  He fired at minutes 42-59 as
+// well as the expected 10-30
+
+    int expectError = 0;
+    DBELL_ERROR scheduleError = DBELL_SUCCESS;
+    DBELL_ERROR processError = DBELL_SUCCESS;
+    runTest("* 10-23 * * *", 7, 8, 10, 11, 6, expectError, scheduleError, processError);
+}
+
 int
 main(int argc, char** argv)
 {
@@ -202,7 +214,8 @@ main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    testSpecialStrings();
-    testLists();
-    testRanges();
+    testMisc();
+    /* testSpecialStrings(); */
+    /* testLists(); */
+    /* testRanges(); */
 }

@@ -16,7 +16,7 @@ isValidMinute(uint64_t minute)
 static int 
 isValidHour(uint64_t hour)
 {
-    return (hour == DBELL_ASTERISK) || ((hour >= 0) && (hour <= (1 << 23)));
+    return (hour == DBELL_ASTERISK) || ((hour > 0) && (hour <= (1 << 24)));
 }
 
 static int
@@ -34,7 +34,7 @@ isValidMonth(uint64_t month)
 static int 
 isValidDOW(uint64_t dayOfWeek)
 {
-    return (dayOfWeek == DBELL_ASTERISK) || ((dayOfWeek >= 1) && (dayOfWeek <= (1 << 31)));
+    return (dayOfWeek == DBELL_ASTERISK) || ((dayOfWeek >= 0) && (dayOfWeek <= (1 << 7)));
 }
 
 DBELL_ERROR
