@@ -38,10 +38,33 @@ char *errorStrings[] = {
     "Minute Range Error",
     "Hour Range Error",
     "Day of Month Range Error",
-    "Illegal Field Error",
+    "Month Range Error",
+    "Day of Week Range Error",
+    "Illegal Field",
     "Generic Out of Range Error"
 };
 
+/**
+   Test a cron string.
+ 
+   @param cronString The string to test.
+
+   @param currentMinute The simulated current minute
+   @param currentHour The simulated current hour
+   @param currentDayOfMonth The simulated current day of month
+   @param currentMonth The simulated current month
+   @param currentDayOfWeek The simulated current day of week
+   
+   @param expectError Set this to true if it is expected that the combination of
+   the cronString and the simulated time values will not fire an action.
+
+   @param expectedScheduleError Set this to a specific DBELL_ERROR if a parsing
+   error is expected.
+
+   @param expectedProcessError Set this to a specific DBELL_ERROR if a process 
+   error is expected.  A process error is any error that occurs when calling
+   dbell_parse().
+ */
 static void
 runTest(const char* cronString,
         int currentMinute,
@@ -98,53 +121,55 @@ runTest(const char* cronString,
     dbell_destroy(clock);
 }
 
-/* static void */
-/* testSpecialStrings() */
-/* { */
-/*     int expectError = 0; */
-/*     DBELL_ERROR scheduleError = DBELL_SUCCESS; */
-/*     DBELL_ERROR scheduleError = DBELL_SUCCESS; */
+static void
+testSpecialStrings()
+{
+    int expectError = 0;
+    DBELL_ERROR scheduleError = DBELL_SUCCESS;
+    DBELL_ERROR processError = DBELL_SUCCESS;
 
-/*     //@hourly */
-/*     runTest("@hourly", 0, 1, 1, 2, 0, expectError); */
-/*     runTest("@hourly", 0, 2, 1, 2, 0, expectError); */
-/*     expectError = 1; */
-/*     runTest("@hourly", 1, 2, 1, 2, 0, expectError); */
+    //@hourly
+    runTest("@hourly", 0, 1, 1, 2, 0, expectError, scheduleError, processError);
+    runTest("@hourly", 0, 2, 1, 2, 0, expectError, scheduleError, processError);
+    expectError = 1;
+    runTest("@hourly", 1, 2, 1, 2, 0, expectError, scheduleError, processError);
 
-/*     //@daily */
-/*     expectError = 0; */
-/*     runTest("@daily", 0, 0, 1, 2, 0, expectError); */
-/*     runTest("@daily", 0, 0, 1, 3, 1, expectError); */
-/*     expectError = 1; */
-/*     runTest("@daily", 1, 2, 1, 2, 0, expectError); */
+    //@daily
+    expectError = 0;
+    runTest("@daily", 0, 0, 1, 2, 0, expectError, scheduleError, processError);
+    runTest("@daily", 0, 0, 1, 3, 1, expectError, scheduleError, processError);
+    expectError = 1;
+    runTest("@daily", 1, 2, 1, 2, 0, expectError, scheduleError, processError);
 
-/*     //@weekly */
-/*     expectError = 0; */
-/*     runTest("@weekly", 0, 0, 1, 2, 0, expectError); */
-/*     runTest("@weekly", 0, 0, 2, 3, 0, expectError); */
-/*     expectError = 1; */
-/*     runTest("@weekly", 1, 2, 1, 2, 6, expectError); */
+    //@weekly
+    expectError = 0;
+    runTest("@weekly", 0, 0, 1, 2, 0, expectError, scheduleError, processError);
+    runTest("@weekly", 0, 0, 2, 3, 0, expectError, scheduleError, processError);
+    expectError = 1;
+    runTest("@weekly", 1, 2, 1, 2, 6, expectError, scheduleError, processError);
 
-/*     /\* //@hourly *\/ */
-/*     expectError = 0; */
-/*     runTest("@hourly", 0, 1, 1, 2, 0, expectError); */
-/*     runTest("@hourly", 0, 2, 1, 2, 0, expectError); */
-/*     expectError = 1; */
-/*     runTest("@hourly", 1, 2, 1, 2, 0, expectError); */
-/* } */
+    /* //@hourly */
+    expectError = 0;
+    runTest("@hourly", 0, 1, 1, 2, 0, expectError, scheduleError, processError);
+    runTest("@hourly", 0, 2, 1, 2, 0, expectError, scheduleError, processError);
+    expectError = 1;
+    runTest("@hourly", 1, 2, 1, 2, 0, expectError, scheduleError, processError);
+}
 
-/* void */
-/* testLists() */
-/* { */
-/*     int expectError = 0; */
-/*     runTest("0,1,2,3,4 * * * *", 0, 0, 1, 2, 0, expectError); */
-/*     runTest("0,1,2,3,4 * * * *", 1, 0, 1, 2, 0, expectError); */
-/*     runTest("0,1,2,3,4 * * * *", 2, 0, 1, 2, 0, expectError); */
-/*     runTest("0,1,2,3,4 * * * *", 3, 0, 1, 2, 0, expectError); */
+void
+testLists()
+{
+    int expectError = 0;
+    DBELL_ERROR scheduleError = DBELL_SUCCESS;
+    DBELL_ERROR processError = DBELL_SUCCESS;
+    runTest("0,1,2,3,4 * * * *", 0, 0, 1, 2, 0, expectError, scheduleError, processError);
+    runTest("0,1,2,3,4 * * * *", 1, 0, 1, 2, 0, expectError, scheduleError, processError);
+    runTest("0,1,2,3,4 * * * *", 2, 0, 1, 2, 0, expectError, scheduleError, processError);
+    runTest("0,1,2,3,4 * * * *", 3, 0, 1, 2, 0, expectError, scheduleError, processError);
 
-/*     expectError = 1; */
-/*     runTest("0,1,2,3,4 * * * *", 5, 0, 1, 1, 0, expectError); */
-/* } */
+    expectError = 1;
+    runTest("0,1,2,3,4 * * * *", 5, 0, 1, 1, 0, expectError, scheduleError, processError);
+}
 
 void
 testRanges()
@@ -152,11 +177,18 @@ testRanges()
     int expectError = 0;
     DBELL_ERROR scheduleError = DBELL_SUCCESS;
     DBELL_ERROR processError = DBELL_SUCCESS;
-    runTest("* 8-10 * * *", 7, 8, 10, 11, 12, expectError, scheduleError, processError);
+    runTest("* 8-10 * * *", 7, 8, 10, 11, 6, expectError, scheduleError, processError);
+    runTest("* 1-10/2 * 11 *", 7, 3, 10, 11, 6, expectError, scheduleError, processError);
 
     expectError = 1;
-    processError = DBELL_ERROR_PARSER_HOUR_RANGE;
-    runTest("* 1-1000 * * *", 7, 8, 10, 11, 12, expectError, scheduleError, processError);
+    scheduleError = DBELL_ERROR_PARSER_HOUR_RANGE; 
+    processError = DBELL_SUCCESS;
+    runTest("* 1-1000 * * *", 7, 8, 10, 11, 6, expectError, scheduleError, processError);
+
+    expectError = 1;
+    scheduleError = DBELL_SUCCESS;
+    processError = DBELL_SUCCESS;
+    runTest("* 1-10/2 * 11 *", 7, 8, 10, 11, 6, expectError, scheduleError, processError);
 }
 
 int
@@ -170,7 +202,7 @@ main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    /* testSpecialStrings(); */
-    /* testLists(); */
+    testSpecialStrings();
+    testLists();
     testRanges();
 }

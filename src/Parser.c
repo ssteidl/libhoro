@@ -49,8 +49,8 @@ validateCronVals(CronVals const* cronVals)
     return DBELL_SUCCESS;
 }
 
-void
-cronFieldFromRange(Range const* range, CronField* cronField)
+static void
+cronFieldFromRange(Range* range, CronField* cronField)
 {
     int i = range->start;
     for(; i <= range->stop; i += range->step)
@@ -59,9 +59,11 @@ cronFieldFromRange(Range const* range, CronField* cronField)
     }
 }
 
-void
-cronFieldFromRangeList(RangeList const* rangeList, CronField* cronField)
+static void
+cronFieldFromRangeList(CronField* cronField)
 {
+    RangeList* rangeList = &cronField->typeVal.rangeList;
+
     uint64_t val = 0;
     int i = 0;
     for(; i < rangeList->numRanges; i++)
@@ -71,11 +73,10 @@ cronFieldFromRangeList(RangeList const* rangeList, CronField* cronField)
 }
 
 
-void
+static void
 cronFieldFromList(List const* list, CronField* cronField)
 {
-    uint64_t val = 0;
-    
+    uint64_t val = 0;    
     int i = 0;
     for(; i < list->numCount; i++)
     {
@@ -83,4 +84,99 @@ cronFieldFromList(List const* list, CronField* cronField)
     }
 
     cronField->val = val;
+}
+
+#define RETURN_POSITION_ERROR(position) \
+    do { \
+    switch(position) \
+    { \
+    case DBELL_POSITION_MINUTE: \
+        return DBELL_ERROR_PARSER_MINUTE_RANGE; \
+    break; \
+    case DBELL_POSITION_HOUR: \
+        return DBELL_ERROR_PARSER_HOUR_RANGE; \
+    break; \
+    case DBELL_POSITION_DOM: \
+        return DBELL_ERROR_PARSER_DOM_RANGE; \
+    break; \
+    case DBELL_POSITION_MONTH: \
+        return DBELL_ERROR_PARSER_MONTH_RANGE; \
+    break; \
+    case DBELL_POSITION_DOW: \
+        return DBELL_ERROR_PARSER_DOW_RANGE; \
+    break; \
+    default: \
+        return DBELL_ERROR_OUT_OF_RANGE; \
+    break; \
+    } \
+    }while(0)
+
+DBELL_ERROR
+setCronFieldValues(CronField *cronField, FieldPosition_e position)
+{
+    if(cronField->type & DBELL_FIELD_TYPE_ASTERISK)
+    {
+        cronField->val = DBELL_ASTERISK;
+    }
+    
+    if(cronField->type & DBELL_FIELD_TYPE_VALUE)
+    {
+        if(isValidCronVal(cronField->typeVal.value))
+        {
+            cronField->val = (1 << cronField->typeVal.value);
+        }
+        else
+        {
+            RETURN_POSITION_ERROR(position);
+        }
+    }
+    
+    if(cronField->type & DBELL_FIELD_TYPE_RANGE)
+    {
+        if(isValidCronVal(cronField->typeVal.range.start) &&
+           isValidCronVal(cronField->typeVal.range.stop) &&
+           isValidCronVal(cronField->typeVal.range.step))
+        {
+            cronFieldFromRange(&cronField->typeVal.range, cronField);
+        }
+        else
+        {
+            RETURN_POSITION_ERROR(position);
+        }
+    }
+
+    if(cronField->type & DBELL_FIELD_TYPE_RANGELIST)
+    {
+        if(cronField->typeVal.rangeList.numRanges > MAX_RANGES_IN_RANGELIST)
+        {
+            RETURN_POSITION_ERROR(position);
+        }
+
+        int i = 0;
+        for(; i < cronField->typeVal.rangeList.numRanges; i++)
+        {
+            if(!isValidCronVal(cronField->typeVal.range.start) ||
+               !isValidCronVal(cronField->typeVal.range.stop) ||
+               !isValidCronVal(cronField->typeVal.range.step))
+            {
+                RETURN_POSITION_ERROR(position);
+            }
+        }
+        cronFieldFromRangeList(cronField);
+    }
+
+    if(cronField->type & DBELL_FIELD_TYPE_LIST)
+    {
+        int i = 0;
+        for(; i < cronField->typeVal.list.numCount; i++)
+        {
+            if(!isValidCronVal(cronField->typeVal.list.listNums[i]))
+            {
+                RETURN_POSITION_ERROR(position);
+            }
+        }
+        cronFieldFromList(&cronField->typeVal.list, cronField);
+    }
+
+    return DBELL_SUCCESS;
 }

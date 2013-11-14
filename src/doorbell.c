@@ -315,21 +315,23 @@ dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString,
     RETURN_ILLEGAL_IF(action == NULL);
     RETURN_ILLEGAL_IF(oActionID == NULL);
 
-    DBELL_ERROR ret = DBELL_SUCCESS;
+    DBELL_ERROR err = DBELL_SUCCESS;
 
     //TODO: Get rid of dynamic memory
     dbell_entry_t *newEntry = (dbell_entry_t*)malloc(sizeof(dbell_entry_t));
 
     if(NULL == newEntry)
     {
-        ret = DBELL_ERROR_NO_MEM;
+        err = DBELL_ERROR_NO_MEM;
         goto DONE;
     }
 
     CronVals cronVals;
-    //TODO: I need a return value to check here
-    processCronString(scheduleString, &cronVals);
 
+    err = processCronString(scheduleString, &cronVals);
+    if(err) goto ERROR;
+
+        
     newEntry->id = clock->nextActionID++;
     newEntry->scheduleVals.minute = cronVals.minute;
     newEntry->scheduleVals.hour = cronVals.hour;
@@ -342,11 +344,17 @@ dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString,
     newEntry->action = action;
     newEntry->actionData = actionData;
 
-    //TODO: Error handling
-    dbellList_add(&clock->entries, newEntry, sizeof(*newEntry)); 
-    
+    err = dbellList_add(&clock->entries, newEntry, sizeof(*newEntry)); 
+    if(err) goto ERROR;
+        
+    if(0)
+    {
+ERROR:
+        free(newEntry);
+    }
+
 DONE:
-    return ret;
+    return err;
 }
 
 typedef struct
@@ -445,7 +453,7 @@ dbell_process(dbell_clock_t* clock, dbell_time_t const* userTime)
     VALIDATE_RANGE_OR_RETURN(userTime->hour, 0, 23);
     VALIDATE_RANGE_OR_RETURN(userTime->dayOfMonth, 1, 31);
     VALIDATE_RANGE_OR_RETURN(userTime->month, 1, 12);
-    VALIDATE_RANGE_OR_RETURN(userTime->minute, 0, 7);
+    VALIDATE_RANGE_OR_RETURN(userTime->dayOfWeek, 0, 7);
 
     size_t numEntries = 0;
     DBELL_ERROR ret = dbellList_size(&clock->entries, &numEntries);
