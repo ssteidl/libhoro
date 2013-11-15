@@ -16,25 +16,27 @@ isValidMinute(uint64_t minute)
 static int 
 isValidHour(uint64_t hour)
 {
-    return (hour == DBELL_ASTERISK) || ((hour > 0) && (hour <= (1 << 24)));
+    return (hour == DBELL_ASTERISK) || ((hour > 0) && (hour <= ((uint64_t)1 << 23)));
 }
 
 static int
 isValidDOM(uint64_t dayOfMonth)
 {
-    return (dayOfMonth == DBELL_ASTERISK) || ((dayOfMonth >= 1) && (dayOfMonth <= (1 << 31)));
+    return (dayOfMonth == DBELL_ASTERISK) || 
+        ((dayOfMonth >= 1) && (dayOfMonth <= ((uint64_t)1 << 31)));
 }
 
 static int
 isValidMonth(uint64_t month)
 {
-    return (month == DBELL_ASTERISK) || ((month >= 1) && (month <= (1 << 12)));
+    return (month == DBELL_ASTERISK) || ((month >= 1) && (month <= ((uint64_t)1 << 12)));
 }
 
 static int 
 isValidDOW(uint64_t dayOfWeek)
 {
-    return (dayOfWeek == DBELL_ASTERISK) || ((dayOfWeek >= 0) && (dayOfWeek <= (1 << 7)));
+    return (dayOfWeek == DBELL_ASTERISK) || 
+        ((dayOfWeek >= 0) && (dayOfWeek <= ((uint64_t)1 << 7)));
 }
 
 DBELL_ERROR
@@ -53,9 +55,9 @@ static void
 cronFieldFromRange(Range* range, CronField* cronField)
 {
     int i = range->start;
-    for(; i <= range->stop; i += range->step)
+    for(; i < range->stop; i += range->step)
     {
-        cronField->val |= (1 << i);
+        cronField->val |= ((uint64_t)1 << i);
     }
 }
 
@@ -80,7 +82,7 @@ cronFieldFromList(List const* list, CronField* cronField)
     int i = 0;
     for(; i < list->numCount; i++)
     {
-        val |= (1 << list->listNums[i]);
+        val |= ((uint64_t)1 << list->listNums[i]);
     }
 
     cronField->val = val;
@@ -123,7 +125,7 @@ setCronFieldValues(CronField *cronField, FieldPosition_e position)
     {
         if(isValidCronVal(cronField->typeVal.value))
         {
-            cronField->val = (1 << cronField->typeVal.value);
+            cronField->val = ((uint64_t)1 << cronField->typeVal.value);
         }
         else
         {
