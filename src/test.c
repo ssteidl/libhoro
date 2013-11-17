@@ -189,6 +189,16 @@ testRanges()
     scheduleError = DBELL_SUCCESS;
     processError = DBELL_SUCCESS;
     runTest("* 1-10/2 * 11 *", 7, 8, 10, 11, 6, expectError, scheduleError, processError);
+
+    expectError = 0;
+    scheduleError = DBELL_SUCCESS;
+    processError = DBELL_SUCCESS;
+    runTest("*/3 1-10/2 * 11 *", 6, 9, 10, 11, 6, expectError, scheduleError, processError);
+
+    expectError = 1;
+    scheduleError = DBELL_SUCCESS;
+    processError = DBELL_SUCCESS;
+    runTest("*/3 1-10/2 * 11 *", 7, 9, 10, 11, 6, expectError, scheduleError, processError);
 }
 
 void

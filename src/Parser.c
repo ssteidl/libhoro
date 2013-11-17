@@ -51,6 +51,32 @@ validateCronVals(CronVals const* cronVals)
     return DBELL_SUCCESS;
 }
 
+static int
+maxValueFromPosition(FieldPosition_e position)
+{
+    switch(position) 
+    { 
+    case DBELL_POSITION_MINUTE: 
+        return 59; 
+        break; 
+    case DBELL_POSITION_HOUR: 
+        return 23; 
+        break; 
+    case DBELL_POSITION_DOM: 
+        return 31;
+        break; 
+    case DBELL_POSITION_MONTH: 
+        return 12; 
+        break; 
+    case DBELL_POSITION_DOW: 
+        return 7;
+        break; 
+    default: 
+        return 0; 
+        break; 
+    }
+}
+
 static void
 cronFieldFromRange(Range* range, CronField* cronField)
 {
@@ -88,6 +114,18 @@ cronFieldFromList(List const* list, CronField* cronField)
     cronField->val = val;
 }
 
+static void
+cronFieldFromAsteriskStep(int step, CronField* cronField, 
+                          FieldPosition_e position)
+{
+    int i = 0;
+    int maxValue = maxValueFromPosition(position);
+    for(; i <= maxValue; i += step)
+    {
+        cronField->val |= ((uint64_t)1 << i);
+    }
+}
+
 #define RETURN_POSITION_ERROR(position) \
     do { \
     switch(position) \
@@ -118,7 +156,15 @@ setCronFieldValues(CronField *cronField, FieldPosition_e position)
 {
     if(cronField->type & DBELL_FIELD_TYPE_ASTERISK)
     {
-        cronField->val = DBELL_ASTERISK;
+        if(cronField->typeVal.asteriskStep > 0)
+        {
+            cronFieldFromAsteriskStep(cronField->typeVal.asteriskStep, 
+                                      cronField, position);
+        }
+        else
+        {
+            cronField->val = DBELL_ASTERISK;
+        }
     }
     
     if(cronField->type & DBELL_FIELD_TYPE_VALUE)

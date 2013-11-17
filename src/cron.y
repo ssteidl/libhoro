@@ -93,6 +93,7 @@ cronfield(CF) ::= ASTERISK. {
 
     memset(&CF, 0, sizeof(CF));
     CF.type = DBELL_FIELD_TYPE_ASTERISK;
+    CF.typeVal.asteriskStep = 1;
 }
 
 cronfield(CF) ::= list(L) COMMA rangelist(RL). {
@@ -212,8 +213,8 @@ rangelist(RL) ::= range(R1) COMMA range(R2). {
 %type asteriskstep {Range}
 asteriskstep(S) ::= ASTERISK STEP number(N). {
 
-    S.start = -1;
-    S.stop = INT_MAX;
+    S.start = 0;
+    S.stop = 64; //TODO: Magic number.
     S.step = N;
 }
 
