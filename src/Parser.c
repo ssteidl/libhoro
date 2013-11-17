@@ -10,33 +10,33 @@ isValidCronVal(int cronVal)
 static int 
 isValidMinute(uint64_t minute)
 {
-    return (minute == DBELL_ASTERISK) || ((minute >= 0) && (minute <= ((uint64_t)1 << 59)));
+    return (minute == DBELL_ASTERISK) || ((minute >= 0) && (minute < ((uint64_t)1 << 60)));
 }
 
 static int 
 isValidHour(uint64_t hour)
 {
-    return (hour == DBELL_ASTERISK) || ((hour > 0) && (hour <= ((uint64_t)1 << 23)));
+    return (hour == DBELL_ASTERISK) || ((hour > 0) && (hour < ((uint64_t)1 << 24)));
 }
 
 static int
 isValidDOM(uint64_t dayOfMonth)
 {
     return (dayOfMonth == DBELL_ASTERISK) || 
-        ((dayOfMonth >= 1) && (dayOfMonth <= ((uint64_t)1 << 31)));
+        ((dayOfMonth >= 1) && (dayOfMonth < ((uint64_t)1 << 32)));
 }
 
 static int
 isValidMonth(uint64_t month)
 {
-    return (month == DBELL_ASTERISK) || ((month >= 1) && (month <= ((uint64_t)1 << 12)));
+    return (month == DBELL_ASTERISK) || ((month >= 1) && (month < ((uint64_t)1 << 13)));
 }
 
 static int 
 isValidDOW(uint64_t dayOfWeek)
 {
     return (dayOfWeek == DBELL_ASTERISK) || 
-        ((dayOfWeek >= 0) && (dayOfWeek <= ((uint64_t)1 << 7)));
+        ((dayOfWeek >= 0) && (dayOfWeek < ((uint64_t)1 << 8)));
 }
 
 DBELL_ERROR
@@ -55,7 +55,7 @@ static void
 cronFieldFromRange(Range* range, CronField* cronField)
 {
     int i = range->start;
-    for(; i < range->stop; i += range->step)
+    for(; i <= range->stop; i += range->step)
     {
         cronField->val |= ((uint64_t)1 << i);
     }

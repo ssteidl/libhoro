@@ -197,34 +197,35 @@ testMaxVals()
     int expectError = 0;
     DBELL_ERROR scheduleError = DBELL_SUCCESS;
     DBELL_ERROR processError = DBELL_SUCCESS;
-    runTest("* 10-23 * * *", 7, 22, 10, 11, 6, 
+    runTest("* 21-23 * * *", 7, 22, 10, 11, 6, 
             expectError, scheduleError, processError);
-    runTest("0-59 0-23 1-31 1-12 0-7", 13, 8, 10, 11, 6, 
+
+    runTest("0-59 0-23 1-31 1-12 0-7", 59, 23, 31, 12, 7,
             expectError, scheduleError, processError);
 
     scheduleError = DBELL_ERROR_PARSER_MINUTE_RANGE;
     expectError = 1;
-    runTest("60 * * * *", 13, 8, 10, 11, 6, 
+    runTest("60 * * * *", 13, 8, 10, 11, 6,
             expectError, scheduleError, processError);
 
     scheduleError = DBELL_ERROR_PARSER_HOUR_RANGE;
     expectError = 1;
-    runTest("* 24 * * *", 13, 8, 10, 11, 6, 
+    runTest("* 24 * * *", 13, 8, 10, 11, 6,
             expectError, scheduleError, processError);
 
     scheduleError = DBELL_ERROR_PARSER_DOM_RANGE;
     expectError = 1;
-    runTest("* * 32 * *", 13, 8, 10, 11, 6, 
+    runTest("* * 32 * *", 13, 8, 10, 11, 6,
             expectError, scheduleError, processError);
 
     scheduleError = DBELL_ERROR_PARSER_MONTH_RANGE;
     expectError = 1;
-    runTest("* * * 13 *", 13, 8, 10, 11, 6, 
+    runTest("* * * 13 *", 13, 8, 10, 11, 6,
             expectError, scheduleError, processError);
 
     scheduleError = DBELL_ERROR_PARSER_DOW_RANGE;
     expectError = 1;
-    runTest("* * * * 8", 13, 8, 10, 11, 6, 
+    runTest("* * * * 8", 13, 8, 10, 11, 6,
             expectError, scheduleError, processError);
 }
 

@@ -376,8 +376,8 @@ checkDOMWithDOW(uint64_t dayOfMonth, uint64_t dayOfWeek,
     if((dayOfMonth != DBELL_ASTERISK) &&
        (dayOfWeek != DBELL_ASTERISK))
     {
-        if((dayOfWeek & (1 << timeVals->dayOfWeek)) &&
-           (dayOfMonth & (1 << timeVals->dayOfMonth)))
+        if((dayOfWeek & ((uint64_t)1 << timeVals->dayOfWeek)) &&
+           (dayOfMonth & ((uint64_t)1 << timeVals->dayOfMonth)))
         {
             return 1;
         }
@@ -385,7 +385,7 @@ checkDOMWithDOW(uint64_t dayOfMonth, uint64_t dayOfWeek,
 
     if(dayOfMonth == DBELL_ASTERISK)
     {
-        if(dayOfWeek & (1 << timeVals->dayOfWeek))
+        if(dayOfWeek & ((uint64_t)1 << timeVals->dayOfWeek))
         {
             return 1;
         }
@@ -393,7 +393,7 @@ checkDOMWithDOW(uint64_t dayOfMonth, uint64_t dayOfWeek,
 
     if(dayOfWeek == DBELL_ASTERISK)
     {
-        if(dayOfMonth & (1 << timeVals->dayOfMonth))
+        if(dayOfMonth & ((uint64_t)1 << timeVals->dayOfMonth))
         {
             return 1;
         }
@@ -406,9 +406,9 @@ static DBELL_ERROR
 checkEachEntry(dbell_entry_t* entry, checkEntryData_t* checkEntryData)
 {
     dbell_time_t const* userTime = checkEntryData->userTime;
-    if((entry->scheduleVals.minute & (1 << userTime->minute)) &&
-       (entry->scheduleVals.hour & (1 << userTime->hour)) && 
-       (entry->scheduleVals.month & (1 << userTime->month)) &&
+    if((entry->scheduleVals.minute & ((uint64_t)1 << userTime->minute)) &&
+       (entry->scheduleVals.hour & ((uint64_t)1 << userTime->hour)) && 
+       (entry->scheduleVals.month & ((uint64_t)1 << userTime->month)) &&
        checkDOMWithDOW(entry->scheduleVals.dayOfMonth,
                        entry->scheduleVals.dayOfWeek,
                        userTime))
