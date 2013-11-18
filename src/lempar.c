@@ -544,7 +544,7 @@ static const struct {
 %%
 };
 
-static void yy_accept(yyParser*);  /* Forward Declaration */
+static void horo_accept(yyParser*);  /* Forward Declaration */
 
 /*
 ** Perform a reduce action and the shift that must immediately
@@ -621,7 +621,7 @@ static void yy_reduce(
     }
   }else{
     assert( yyact == YYNSTATE + YYNRULE + 1 );
-    yy_accept(yypParser);
+    horo_accept(yypParser);
   }
 }
 
@@ -663,7 +663,7 @@ static void yy_syntax_error(
 /*
 ** The following is executed when the parser accepts
 */
-static void yy_accept(
+static void horo_accept(
   yyParser *yypParser           /* The parser */
 ){
   ParseARG_FETCH;
