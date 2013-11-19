@@ -1,0 +1,27 @@
+
+lemon.exe: lemon.c
+	cl  lemon.c
+
+lex.horo.c: cron.l Parser.h
+	flex --prefix=horo --nounistd cron.l
+
+cron.c: cron.y lemon.exe Parser.h
+	lemon cron.y
+
+cron.h: cron.c
+
+cron.obj: cron.c
+	cl /nologo /c cron.c
+
+lex.horo.obj: lex.horo.c cron.h
+	cl /nologo /DYY_NO_UNISTD_H /c lex.horo.c
+
+Parser.obj: Parser.h doorbell.h Parser.c
+	cl /nologo /c Parser.c
+
+libdoorbell.obj: cron.obj doorbell.c
+	cl /c /out:libdoorbell.obj doorbell.c 
+
+clean:
+	del lemon.exe lex.horo.c lex.horo.obj cron.c cron.h cron.obj Parser.obj \
+        libdoorbell.obj

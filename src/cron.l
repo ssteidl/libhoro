@@ -25,22 +25,25 @@
 DBELL_ERROR 
 processCronString(char const* string, CronVals* oCronVals)
 {
+    Token theToken;
     void* dbellParser = doorbellParserAlloc(malloc);
+    DBELL_ERROR ret = DBELL_SUCCESS;
+    int token = 0;
+
     if(dbellParser == NULL)
     {
         return DBELL_ERROR_ILLEGAL_ARG;
     }
 
 //    doorbellParserTrace(stderr, "dbell");
-    Token theToken;
+    
     memset(oCronVals, 0, sizeof(CronVals));
     yy_scan_string(string);
-    DBELL_ERROR ret = DBELL_SUCCESS;
     while(1)
     {
         memset(&theToken, 0, sizeof(Token));
         
-        int token = yylex();
+        token = yylex();
         if(!token)
         {
             //If there are no more tokens, we need to call the parser one last time.
