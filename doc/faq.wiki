@@ -1,0 +1,21 @@
+<h1>What is libhoro?</h1>
+
+libhoro is a simple cross platform C library that allows developers to easily schedule actions
+(callbacks) based on a descriptive cron style string.  The design of libhoro is such that it can
+easily integrate into any program event loop.
+
+<h1>What does horo mean?</h1>
+
+Horo is short for horology.  Horology is the study of time.  We thought it would be a clever name.
+
+<h1>Can I see and example of how it works?</h1>
+
+Absolutely.  Below is a short explanation of how to use libhoro. Also, the test program
+[/doc/trunk/src/cronprint.c|cronprint.c] is a very simple example of using the libhoro interface.
+
+
+<verbatim>
+dbell_clock_t* clock = NULL;
+DBELL_ERROR err = dbell_init(&clock)
+</verbatim>
+
