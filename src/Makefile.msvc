@@ -1,33 +1,13 @@
 all: cronprint.exe test.exe
 
-lemon.exe: lemon.c
-	cl  lemon.c
+dbell-amal.obj: dbell-amal.c doorbell.h
+	cl /nologo /c  dbell-amal.c 
 
-lex.horo.c: cron.l Parser.h
-	flex --prefix=horo --nounistd cron.l
+test.exe: dbell-amal.obj
+	cl  /nologo test.c dbell-amal.obj
 
-cron.c: cron.y lemon.exe Parser.h
-	lemon cron.y
-
-cron.h: cron.c
-
-cron.obj: cron.c
-	cl /nologo /c cron.c
-
-lex.horo.obj: lex.horo.c cron.h
-	cl /nologo /c lex.horo.c
-
-Parser.obj: Parser.h doorbell.h Parser.c
-	cl /nologo /c Parser.c
-
-doorbell.obj: cron.obj doorbell.c
-	cl /nologo /c  doorbell.c 
-
-test.exe: test.c doorbell.obj lex.horo.obj Parser.obj
-	cl  /nologo test.c doorbell.obj cron.obj lex.horo.obj Parser.obj
-
-cronprint.exe: cronprint.c doorbell.obj lex.horo.obj Parser.obj
-	cl /nologo cronprint.c doorbell.obj cron.obj lex.horo.obj Parser.obj
+cronprint.exe: dbell-amal.obj
+	cl /nologo cronprint.c dbell-amal.obj
 
 clean:
-	del *.exe *.obj lex.horo.c cron.c cron.h
+	del *.exe *.obj
