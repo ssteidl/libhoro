@@ -154,6 +154,8 @@ cronFieldFromAsteriskStep(int step, CronField* cronField,
 DBELL_ERROR
 setCronFieldValues(CronField *cronField, FieldPosition_e position)
 {
+    int i = 0;
+
     if(cronField->type & DBELL_FIELD_TYPE_ASTERISK)
     {
         if(cronField->typeVal.asteriskStep > 0)
@@ -200,7 +202,7 @@ setCronFieldValues(CronField *cronField, FieldPosition_e position)
             RETURN_POSITION_ERROR(position);
         }
 
-        int i = 0;
+        i = 0;
         for(; i < cronField->typeVal.rangeList.numRanges; i++)
         {
             if(!isValidCronVal(cronField->typeVal.range.start) ||
@@ -215,7 +217,7 @@ setCronFieldValues(CronField *cronField, FieldPosition_e position)
 
     if(cronField->type & DBELL_FIELD_TYPE_LIST)
     {
-        int i = 0;
+        i = 0;
         for(; i < cronField->typeVal.list.numCount; i++)
         {
             if(!isValidCronVal(cronField->typeVal.list.listNums[i]))

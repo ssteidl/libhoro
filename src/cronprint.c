@@ -1,9 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "doorbell.h"
+
+#ifdef _WIN32
+#include <Windows.h>
+static void
+delay()
+{
+    Sleep(1);
+}
+
+#else
+static void
+delay()
+{
+    usleep(1000);
+}
+#endif
+
 
 static void
 usage()
@@ -14,8 +30,9 @@ usage()
 void printCB(void* actionData)
 {
     time_t rawTime;
-    rawTime = time(NULL);
     struct tm* timeinfo;
+
+    rawTime = time(NULL);
     timeinfo = localtime(&rawTime);
     fprintf(stdout, "%s: %s\n", asctime(timeinfo), (char*)actionData);
 }
@@ -23,14 +40,18 @@ void printCB(void* actionData)
 int
 main(int argc, char** argv)
 {
+    DBELL_ERROR err = DBELL_SUCCESS;
+    dbell_clock_t* clock = NULL;
+    int alarmID;
+    time_t rawTime;
+    struct tm* timeinfo;
+    dbell_time_t dbellTime;
+    int dummy;
     if(argc != 3)
     {
         usage();
         exit(EXIT_FAILURE);
     }
-
-    DBELL_ERROR err = DBELL_SUCCESS;
-    dbell_clock_t* clock = NULL;
     
     err = dbell_init(&clock);
     if(err)
@@ -39,34 +60,34 @@ main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    int alarmID;
     err = dbell_scheduleAction(clock, argv[1], printCB, argv[2], &alarmID);
     if(err)
     {
         fprintf(stderr, "Error with dbell_scheduleAction: %d\n", err);
-        goto ERROR;
+        goto Error;
     }
 
     while(1)
     {
-        time_t rawTime;
+
         rawTime = time(NULL);
-        struct tm* timeinfo;
+
         timeinfo = localtime(&rawTime);
-        dbell_time_t dbellTime;
         dbellTime.minute = timeinfo->tm_min;
         dbellTime.hour = timeinfo->tm_hour;
         dbellTime.dayOfMonth = timeinfo->tm_mday;
         dbellTime.month = timeinfo->tm_mon;
         dbellTime.dayOfWeek = timeinfo->tm_wday;
         err = dbell_process(clock, &dbellTime);
-        usleep(1000);
+        delay();
     }
 
     dbell_destroy(clock);
+
     if(0)
     {
-ERROR:
+        dummy = 0;
+    Error:
         exit(EXIT_FAILURE);
     }
 

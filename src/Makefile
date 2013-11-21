@@ -1,16 +1,17 @@
+#For mingw we need to check if we have Windows_NT or not.
 ifeq ($(OS), Windows_NT)
 	EXE := .exe	
 else
 	EXE :=
 endif
 
-all: libdoorbell.o dbelltest cronprint dbelltest-amal cronprint-amal libdoorbell-amal.tgz
+all: test cronprint test-amal cronprint-amal libdoorbell-amal.tgz
 
 lemon$(EXE): lemon.c
 	gcc -o lemon$(EXE) lemon.c
 
 lex.horo.c: cron.l Parser.h
-	flex --prefix=horo cron.l
+	flex --prefix=horo --nounistd cron.l
 
 lex.horo.o: lex.horo.c
 	gcc -g -O0 -c lex.horo.c
@@ -27,8 +28,8 @@ cron.o: cron.c
 libdoorbell.o: cron.o doorbell.c
 	gcc -g -O0 -c doorbell.c -o libdoorbell.o
 
-dbelltest: test.c libdoorbell.o lex.horo.o Parser.o
-	gcc -g -O0 -o dbelltest test.c libdoorbell.o cron.o lex.horo.o Parser.o
+test: test.c libdoorbell.o lex.horo.o Parser.o
+	gcc -g -O0 -o test test.c libdoorbell.o cron.o lex.horo.o Parser.o
 
 dbell-amal.c: cron.c lex.horo.c lemon.c Parser.c
 	tclsh86.exe mkamal.tcl
@@ -36,8 +37,8 @@ dbell-amal.c: cron.c lex.horo.c lemon.c Parser.c
 dbell-amal.o: dbell-amal.c
 	gcc -g -O0 -c -o dbell-amal.o dbell-amal.c 
 
-dbelltest-amal: dbell-amal.o
-	gcc -g -odbelltest-amal test.c dbell-amal.o
+test-amal: dbell-amal.o
+	gcc -g -otest-amal test.c dbell-amal.o
 
 cronprint: cronprint.c libdoorbell.o lex.horo.o Parser.o
 	gcc -g -O0 -o cronprint cronprint.c libdoorbell.o cron.o lex.horo.o Parser.o
@@ -49,5 +50,5 @@ libdoorbell-amal.tgz: dbell-amal.c doorbell.h
 	tar -cf libdoorbell-amal.tgz dbell-amal.c doorbell.h
 
 clean: 
-	rm -vf lemon$(EXE) lex.horo.c *.o *~ dbelltest$(EXE) cronprint$(EXE) dbell-amal.c \
-	cron.c cron.h cron.out dbelltest-amal$(EXE) cronprint-amal$(EXE) libdoorbell-amal.tgz
+	rm -vf lemon$(EXE) lex.horo.c *.o *~ test$(EXE) cronprint$(EXE) dbell-amal.c \
+	cron.c cron.h cron.out test-amal$(EXE) cronprint-amal$(EXE) libdoorbell-amal.tgz

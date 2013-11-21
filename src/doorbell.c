@@ -112,7 +112,7 @@ addToEmptyList(dbellContainer_t *list, const void *value, size_t size)
 ERR:
         freeListNode(list->head);
         list->head = NULL;
-        list->tail == NULL;
+        list->tail = NULL;
     }
 
     return ret;
@@ -158,11 +158,12 @@ ERR:
 static DBELL_ERROR
 dbellList_add(dbellContainer_t *list, const void *value, size_t size)
 {
+    DBELL_ERROR ret = DBELL_SUCCESS;
+
     RETURN_ILLEGAL_IF(list == NULL);
     RETURN_IF_NOT_INITIALIZED(list);
     RETURN_ILLEGAL_IF(value == NULL);
 
-    DBELL_ERROR ret = DBELL_SUCCESS;
     if(list == NULL)
     {
         ret = DBELL_ERROR_ILLEGAL_ARG;
@@ -196,14 +197,15 @@ dbellList_size(dbellContainer_t *list, size_t *sizeReturn)
 static DBELL_ERROR
 dbellList_remove(dbellContainer_t *list, int index)
 {
+    DBELL_ERROR ret = DBELL_SUCCESS;
+    int count = 0;
+    dbellContainerNode_t *currNode = list->head;
+
+
     RETURN_ILLEGAL_IF(list == NULL);
     RETURN_IF_NOT_INITIALIZED(list);
     RETURN_ILLEGAL_IF(list->head == NULL);
     RETURN_ILLEGAL_IF(index < 0);
-
-    DBELL_ERROR ret = DBELL_SUCCESS;
-    int count = 0;
-    dbellContainerNode_t *currNode = list->head;
 
     if(index > (list->numElements - 1))
     {
@@ -250,11 +252,13 @@ dbellList_forEach(const dbellContainer_t *list,
                   dbellList_forEachFunc callBack,
                   void *userp)
 {
-    RETURN_ILLEGAL_IF(list == NULL);
-    RETURN_IF_NOT_INITIALIZED(list);
 
     DBELL_ERROR err = DBELL_SUCCESS;
     dbellContainerNode_t *currNode = list->head;
+
+    RETURN_ILLEGAL_IF(list == NULL);
+    RETURN_IF_NOT_INITIALIZED(list);
+
     while(currNode != NULL)
     {
         err = (*callBack)(currNode->data, userp);
@@ -269,12 +273,13 @@ dbellList_forEach(const dbellContainer_t *list,
 static void
 dbellList_destroyNodes(dbellContainer_t *list)
 {
+    dbellContainerNode_t *currNode = list->head;
+    dbellContainerNode_t *tmpNode = currNode;
+
     if(list == NULL) return;
     if(list->numElements == 0) return;
     if(list->initKey != INITIALIZED_KEY) return;
 
-    dbellContainerNode_t *currNode = list->head;
-    dbellContainerNode_t *tmpNode = currNode;
     while(currNode != NULL)
     {
         currNode = currNode->next;
@@ -311,22 +316,23 @@ dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString,
                      dbell_actionFunc action, void *actionData,
                      int* oActionID)
 {
+    DBELL_ERROR err = DBELL_SUCCESS;
+    dbell_entry_t *newEntry = NULL;
+    CronVals cronVals;
+
     RETURN_ILLEGAL_IF(scheduleString == NULL);
     RETURN_ILLEGAL_IF(action == NULL);
     RETURN_ILLEGAL_IF(oActionID == NULL);
 
-    DBELL_ERROR err = DBELL_SUCCESS;
 
     //TODO: Get rid of dynamic memory
-    dbell_entry_t *newEntry = (dbell_entry_t*)malloc(sizeof(dbell_entry_t));
+    newEntry  = (dbell_entry_t*)malloc(sizeof(dbell_entry_t));
 
     if(NULL == newEntry)
     {
         err = DBELL_ERROR_NO_MEM;
         goto DONE;
     }
-
-    CronVals cronVals;
 
     err = processCronString(scheduleString, &cronVals);
     if(err) goto ERROR;
@@ -405,7 +411,9 @@ checkDOMWithDOW(uint64_t dayOfMonth, uint64_t dayOfWeek,
 static DBELL_ERROR
 checkEachEntry(dbell_entry_t* entry, checkEntryData_t* checkEntryData)
 {
+    dbell_time_t const* lastRuntime = NULL;
     dbell_time_t const* userTime = checkEntryData->userTime;
+    
     if((entry->scheduleVals.minute & ((uint64_t)1 << userTime->minute)) &&
        (entry->scheduleVals.hour & ((uint64_t)1 << userTime->hour)) && 
        (entry->scheduleVals.month & ((uint64_t)1 << userTime->month)) &&
@@ -413,7 +421,7 @@ checkEachEntry(dbell_entry_t* entry, checkEntryData_t* checkEntryData)
                        entry->scheduleVals.dayOfWeek,
                        userTime))
     {
-        dbell_time_t const* lastRuntime = &entry->lastRuntime;
+        lastRuntime = &entry->lastRuntime;
         if((lastRuntime->minute != userTime->minute) ||
            (lastRuntime->hour != userTime->hour) ||
            (lastRuntime->dayOfMonth != userTime->dayOfMonth) ||
@@ -449,14 +457,16 @@ DBELL_ERROR
 dbell_process(dbell_clock_t* clock, dbell_time_t const* userTime)
 {
 
+    size_t numEntries = 0;
+    DBELL_ERROR ret = DBELL_SUCCESS;
+
     VALIDATE_RANGE_OR_RETURN(userTime->minute, 0, 59);
     VALIDATE_RANGE_OR_RETURN(userTime->hour, 0, 23);
     VALIDATE_RANGE_OR_RETURN(userTime->dayOfMonth, 1, 31);
     VALIDATE_RANGE_OR_RETURN(userTime->month, 1, 12);
     VALIDATE_RANGE_OR_RETURN(userTime->dayOfWeek, 0, 7);
 
-    size_t numEntries = 0;
-    DBELL_ERROR ret = dbellList_size(&clock->entries, &numEntries);
+    ret = dbellList_size(&clock->entries, &numEntries);
     if(ret)
     {
         return ret;
@@ -485,4 +495,6 @@ dbell_destroy(dbell_clock_t* clock)
     RETURN_ILLEGAL_IF(clock == NULL);
     dbellList_destroyNodes(&clock->entries);
     free(clock);
+
+    return DBELL_SUCCESS;
 }

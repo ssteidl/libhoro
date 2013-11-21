@@ -6,8 +6,6 @@
 
 #include "doorbell.h"
 
-
-
 typedef struct
 {
     dbell_time_t expectedTimeVals;
@@ -76,10 +74,12 @@ runTest(const char* cronString,
 	DBELL_ERROR expectedScheduleError,
 	DBELL_ERROR expectedProcessError)
 {
-    dbell_clock_t* clock;
-    dbell_init(&clock);
+    dbell_clock_t* clock = NULL;
     int alarmID;
     testData_t testData;
+    DBELL_ERROR scheduleError = DBELL_SUCCESS;
+    DBELL_ERROR processError = DBELL_SUCCESS;
+    dbell_init(&clock);
     memset(&testData, 0, sizeof(testData));
     testData.expectedTimeVals.minute = currentMinute;
     testData.expectedTimeVals.hour = currentHour;
@@ -88,7 +88,7 @@ runTest(const char* cronString,
     testData.expectedTimeVals.dayOfWeek = currentDayOfWeek;
     testData.error = 1;
 
-    DBELL_ERROR scheduleError = dbell_scheduleAction(clock, cronString, 
+    scheduleError = dbell_scheduleAction(clock, cronString, 
 						     action, &testData, &alarmID);
 
     if(scheduleError != expectedScheduleError)
@@ -98,7 +98,7 @@ runTest(const char* cronString,
         exit(1);
     }
 
-    DBELL_ERROR processError = dbell_process(clock, &testData.expectedTimeVals);
+    processError = dbell_process(clock, &testData.expectedTimeVals);
     if(expectedProcessError != processError)
     {
         fprintf(stderr, "Test failed. Expected: %s, but was: %s\n", 
@@ -181,7 +181,7 @@ testRanges()
     runTest("* 1-10/2 * 11 *", 7, 3, 10, 11, 6, expectError, scheduleError, processError);
 
     expectError = 1;
-    scheduleError = DBELL_ERROR_PARSER_HOUR_RANGE; 
+    scheduleError = DBELL_ERROR_OUT_OF_RANGE; //Too many digits in 1000 only 2 digits allowed 
     processError = DBELL_SUCCESS;
     runTest("* 1-1000 * * *", 7, 8, 10, 11, 6, expectError, scheduleError, processError);
 
