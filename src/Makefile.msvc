@@ -14,13 +14,19 @@ cron.obj: cron.c
 	cl /nologo /c cron.c
 
 lex.horo.obj: lex.horo.c cron.h
-	cl /nologo /DYY_NO_UNISTD_H /c lex.horo.c
+	cl /nologo /c lex.horo.c
 
 Parser.obj: Parser.h doorbell.h Parser.c
 	cl /nologo /c Parser.c
 
-libdoorbell.obj: cron.obj doorbell.c
-	cl /c /out:libdoorbell.obj doorbell.c 
+doorbell.obj: cron.obj doorbell.c
+	cl /c  doorbell.c 
+
+test.exe: test.c doorbell.obj lex.horo.obj Parser.obj
+	cl  test.c doorbell.obj cron.obj lex.horo.obj Parser.obj
+
+cronprint.exe: cronprint.c doorbell.obj lex.horo.obj Parser.obj
+	cl cronprint.c doorbell.obj cron.obj lex.horo.obj Parser.obj
 
 clean:
 	del lemon.exe lex.horo.c lex.horo.obj cron.c cron.h cron.obj Parser.obj \
