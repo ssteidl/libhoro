@@ -6,8 +6,6 @@
 
 #include "doorbell.h"
 
-
-
 typedef struct
 {
     dbell_time_t expectedTimeVals;

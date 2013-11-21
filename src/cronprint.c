@@ -4,6 +4,23 @@
 
 #include "doorbell.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+static void
+delay()
+{
+    Sleep(1);
+}
+
+#else
+static void
+delay()
+{
+    usleep(1000);
+}
+#endif
+
+
 static void
 usage()
 {
@@ -29,7 +46,7 @@ main(int argc, char** argv)
     time_t rawTime;
     struct tm* timeinfo;
     dbell_time_t dbellTime;
-
+    int dummy;
     if(argc != 3)
     {
         usage();
@@ -47,7 +64,7 @@ main(int argc, char** argv)
     if(err)
     {
         fprintf(stderr, "Error with dbell_scheduleAction: %d\n", err);
-        goto ERROR;
+        goto Error;
     }
 
     while(1)
@@ -62,13 +79,15 @@ main(int argc, char** argv)
         dbellTime.month = timeinfo->tm_mon;
         dbellTime.dayOfWeek = timeinfo->tm_wday;
         err = dbell_process(clock, &dbellTime);
-        usleep(1000);
+        delay();
     }
 
     dbell_destroy(clock);
+
     if(0)
     {
-ERROR:
+        dummy = 0;
+    Error:
         exit(EXIT_FAILURE);
     }
 

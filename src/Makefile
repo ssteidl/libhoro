@@ -1,3 +1,4 @@
+#For mingw we need to check if we have Windows_NT or not.
 ifeq ($(OS), Windows_NT)
 	EXE := .exe	
 else
@@ -10,7 +11,7 @@ lemon$(EXE): lemon.c
 	gcc -o lemon$(EXE) lemon.c
 
 lex.horo.c: cron.l Parser.h
-	flex --prefix=horo cron.l
+	flex --prefix=horo --nounistd cron.l
 
 lex.horo.o: lex.horo.c
 	gcc -g -O0 -c lex.horo.c
