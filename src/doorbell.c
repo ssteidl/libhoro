@@ -317,47 +317,30 @@ dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString,
                      int* oActionID)
 {
     DBELL_ERROR err = DBELL_SUCCESS;
-    dbell_entry_t *newEntry = NULL;
+    dbell_entry_t newEntry;
     CronVals cronVals;
 
     RETURN_ILLEGAL_IF(scheduleString == NULL);
     RETURN_ILLEGAL_IF(action == NULL);
     RETURN_ILLEGAL_IF(oActionID == NULL);
 
-
-    //TODO: Get rid of dynamic memory
-    newEntry  = (dbell_entry_t*)malloc(sizeof(dbell_entry_t));
-
-    if(NULL == newEntry)
-    {
-        err = DBELL_ERROR_NO_MEM;
-        goto DONE;
-    }
-
     err = processCronString(scheduleString, &cronVals);
-    if(err) goto ERROR;
-
+    if(err) goto DONE;
         
-    newEntry->id = clock->nextActionID++;
-    newEntry->scheduleVals.minute = cronVals.minute;
-    newEntry->scheduleVals.hour = cronVals.hour;
-    newEntry->scheduleVals.dayOfMonth = cronVals.dayOfMonth;
-    newEntry->scheduleVals.month = cronVals.month;
-    newEntry->scheduleVals.dayOfWeek = cronVals.dayOfWeek;
+    newEntry.id = clock->nextActionID++;
+    newEntry.scheduleVals.minute = cronVals.minute;
+    newEntry.scheduleVals.hour = cronVals.hour;
+    newEntry.scheduleVals.dayOfMonth = cronVals.dayOfMonth;
+    newEntry.scheduleVals.month = cronVals.month;
+    newEntry.scheduleVals.dayOfWeek = cronVals.dayOfWeek;
 
-    memset(&newEntry->lastRuntime, 0, sizeof(newEntry->lastRuntime));
+    memset(&newEntry.lastRuntime, 0, sizeof(newEntry.lastRuntime));
     
-    newEntry->action = action;
-    newEntry->actionData = actionData;
+    newEntry.action = action;
+    newEntry.actionData = actionData;
 
-    err = dbellList_add(&clock->entries, newEntry, sizeof(*newEntry)); 
-    if(err) goto ERROR;
-        
-    if(0)
-    {
-ERROR:
-        free(newEntry);
-    }
+    err = dbellList_add(&clock->entries, &newEntry, sizeof(newEntry)); 
+    if(err) goto DONE;
 
 DONE:
     return err;
@@ -487,6 +470,12 @@ dbell_process(dbell_clock_t* clock, dbell_time_t const* userTime)
     }
 
     return ret;
+}
+
+DBELL_ERROR
+dbell_removeAction(dbell_clock_t* clock, int actionID)
+{
+    RETURN_ILLEGAL_IF(clock == NULL);
 }
 
 DBELL_ERROR
