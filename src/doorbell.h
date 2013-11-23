@@ -42,7 +42,7 @@ dbell_init(dbell_clock_t** oClock);
 DBELL_ERROR
 dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString, 
                      dbell_actionFunc action, void *actionData,
-                     int* alarmID);
+                     int* actionID);
                      
 DBELL_ERROR
 dbell_process(dbell_clock_t* clock, dbell_time_t const* timeVals);
