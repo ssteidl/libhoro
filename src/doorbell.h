@@ -16,9 +16,11 @@ typedef enum
     DBELL_ERROR_PARSER_MONTH_RANGE = 0x8,
     DBELL_ERROR_PARSER_DOW_RANGE = 0x9,
     DBELL_ERROR_PARSER_ILLEGAL_FIELD = 0xA,
-    DBELL_ERROR_OUT_OF_RANGE = 0xB
+    DBELL_ERROR_OUT_OF_RANGE = 0xB,
+    DBELL_ERROR_UNKNOWN_ACTION = 0xC
 }DBELL_ERROR;
 
+//REVIEW: Does this need to be part of the public interface?
 #define DBELL_ASTERISK (uint64_t)0xFFFFFFFFFFFFFFFF
 
 struct dbell_time
@@ -42,10 +44,16 @@ dbell_init(dbell_clock_t** oClock);
 DBELL_ERROR
 dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString, 
                      dbell_actionFunc action, void *actionData,
-                     int* alarmID);
+                     int* oActionID);
                      
 DBELL_ERROR
 dbell_process(dbell_clock_t* clock, dbell_time_t const* timeVals);
+
+DBELL_ERROR
+dbell_unscheduleAction(dbell_clock_t* clock, int actionID);
+
+DBELL_ERROR
+dbell_actionCount(dbell_clock_t* clock, int* oActionCount);
 
 DBELL_ERROR
 dbell_destroy(dbell_clock_t* clock);
