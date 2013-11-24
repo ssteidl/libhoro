@@ -39,7 +39,8 @@ char *errorStrings[] = {
     "Month Range Error",
     "Day of Week Range Error",
     "Illegal Field",
-    "Generic Out of Range Error"
+    "Generic Out of Range Error",
+    "Unknown Action ID"
 };
 
 /**
@@ -75,7 +76,7 @@ runTest(const char* cronString,
 	DBELL_ERROR expectedProcessError)
 {
     dbell_clock_t* clock = NULL;
-    int alarmID;
+    int actionID;
     testData_t testData;
     DBELL_ERROR scheduleError = DBELL_SUCCESS;
     DBELL_ERROR processError = DBELL_SUCCESS;
@@ -89,7 +90,7 @@ runTest(const char* cronString,
     testData.error = 1;
 
     scheduleError = dbell_scheduleAction(clock, cronString, 
-						     action, &testData, &alarmID);
+                                         action, &testData, &actionID);
 
     if(scheduleError != expectedScheduleError)
     {
@@ -239,17 +240,88 @@ testMaxVals()
             expectError, scheduleError, processError);
 }
 
+static void
+dummyAction(void* unused)
+{
+    return;
+}
+
+static void
+testRemove()
+{
+    dbell_clock_t* clock = NULL;
+    DBELL_ERROR err = DBELL_SUCCESS;
+    int actionID = -1;
+    int count = 0;
+
+    err = dbell_init(&clock);
+    if(err)
+    {
+        fprintf(stderr, "Error initializing clock: %s\n", errorStrings[err]);
+        exit(err);
+    }
+
+    err = dbell_actionCount(clock, &count);
+    assert(err == DBELL_SUCCESS);
+    assert(count == 0);
+
+    err = dbell_scheduleAction(clock, "* * * * *", dummyAction, 
+                               NULL, &actionID);
+    assert(actionID == 0);
+    assert(err == DBELL_SUCCESS);
+
+    err = dbell_scheduleAction(clock, "* * * * *", dummyAction, 
+                                NULL, &actionID);
+    assert(actionID == 1);
+    assert(err == DBELL_SUCCESS);
+
+    err = dbell_scheduleAction(clock, "* * * * *", dummyAction, 
+                                NULL, &actionID);
+    assert(actionID == 2);
+    assert(err == DBELL_SUCCESS);
+
+    err = dbell_scheduleAction(clock, "* * * * *", dummyAction, 
+                                NULL, &actionID);
+    assert(actionID == 3);
+    assert(err == DBELL_SUCCESS);
+
+    err = dbell_scheduleAction(clock, "* * * * *", dummyAction, 
+                                NULL, &actionID);
+    assert(actionID == 4);
+    assert(err == DBELL_SUCCESS);
+
+    err = dbell_actionCount(clock, &count);
+    assert(err == DBELL_SUCCESS);
+    assert(count == 5);
+
+    err = dbell_unscheduleAction(clock, 0);
+    assert(err == DBELL_SUCCESS);
+    err = dbell_actionCount(clock, &count);
+    assert(err == DBELL_SUCCESS);
+    assert(count == 4);
+
+    err = dbell_unscheduleAction(clock, 4);
+    assert(err == DBELL_SUCCESS);
+    err = dbell_actionCount(clock, &count);
+    assert(err == DBELL_SUCCESS);
+    assert(count == 3);
+
+    err = dbell_unscheduleAction(clock, 2);
+    assert(err == DBELL_SUCCESS);
+    err = dbell_unscheduleAction(clock, 1);
+    assert(err == DBELL_SUCCESS);
+    err = dbell_unscheduleAction(clock, 3);
+    assert(err == DBELL_SUCCESS);
+
+    err = dbell_actionCount(clock, &count);
+    assert(err == DBELL_SUCCESS);
+    assert(count == 0);
+}
+
 int
 main(int argc, char** argv)
 {
-    dbell_clock_t* clock;
-    DBELL_ERROR err = dbell_init(&clock);
-    if(err)
-    {
-        fprintf(stderr, "error dbell_init: %d\n", err);
-        exit(EXIT_FAILURE);
-    }
-
+    testRemove();
     testMaxVals();
     testSpecialStrings();
     testLists();

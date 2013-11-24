@@ -240,6 +240,10 @@ dbellList_remove(dbellContainer_t *list, int index)
     {
         currNode->prev->next = currNode->next;
     }
+    if(currNode->next != NULL)
+    {
+        currNode->next->prev = currNode->prev;
+    }
 
     freeListNode(currNode);
     --list->numElements;
@@ -342,6 +346,7 @@ dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString,
     err = dbellList_add(&clock->entries, &newEntry, sizeof(newEntry)); 
     if(err) goto DONE;
 
+    *oActionID = newEntry.id;
 DONE:
     return err;
 }
@@ -473,9 +478,44 @@ dbell_process(dbell_clock_t* clock, dbell_time_t const* userTime)
 }
 
 DBELL_ERROR
-dbell_removeAction(dbell_clock_t* clock, int actionID)
+dbell_unscheduleAction(dbell_clock_t* clock, int actionID)
+{
+    int found = 0;
+    int index = 0;
+    DBELL_ERROR ret = DBELL_ERROR_UNKNOWN_ACTION;
+    dbellContainerNode_t *node = NULL;
+
+    RETURN_ILLEGAL_IF(clock == NULL);
+
+    node = clock->entries.head;
+    while(node != NULL)
+    {
+        dbell_entry_t* entry = (dbell_entry_t*)node->data;
+        if(entry->id == actionID)
+        {
+            found = 1;
+            break;
+        }
+        index++;
+        node = node->next;
+    }
+    
+    if(found)
+    {
+        ret = dbellList_remove(&clock->entries, index);
+    }
+
+    return ret;
+}
+
+DBELL_ERROR
+dbell_actionCount(dbell_clock_t* clock, int* oActionCount)
 {
     RETURN_ILLEGAL_IF(clock == NULL);
+    RETURN_ILLEGAL_IF(oActionCount == NULL);
+
+    *oActionCount = clock->entries.numElements;
+    return DBELL_SUCCESS;
 }
 
 DBELL_ERROR
