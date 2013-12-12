@@ -38,7 +38,7 @@ processCronString(char const* string, CronVals* oCronVals)
 //    doorbellParserTrace(stderr, "dbell");
     
     memset(oCronVals, 0, sizeof(CronVals));
-    yy_scan_string(string);
+    YY_BUFFER_STATE buffer = yy_scan_string(string);
     while(1)
     {
         memset(&theToken, 0, sizeof(Token));
@@ -75,6 +75,7 @@ processCronString(char const* string, CronVals* oCronVals)
     }
 
     doorbellParserFree(dbellParser, free);
+    yy_delete_buffer(buffer);
     return ret;
 }
 
