@@ -76,7 +76,11 @@ main(int argc, char** argv)
         dbellTime.minute = timeinfo->tm_min;
         dbellTime.hour = timeinfo->tm_hour;
         dbellTime.dayOfMonth = timeinfo->tm_mday;
-        dbellTime.month = timeinfo->tm_mon;
+
+        //!! NOTICE THE +1 !!
+        dbellTime.month = timeinfo->tm_mon + 1;
+
+
         dbellTime.dayOfWeek = timeinfo->tm_wday;
         err = dbell_process(clock, &dbellTime);
         delay();
@@ -86,7 +90,6 @@ main(int argc, char** argv)
 
     if(0)
     {
-        dummy = 0;
     Error:
         exit(EXIT_FAILURE);
     }

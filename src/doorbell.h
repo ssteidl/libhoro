@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum
 {
     /** Operation was successful */
@@ -197,5 +201,9 @@ dbell_process(dbell_clock_t* clock, dbell_time_t const* timeVals);
  */
 DBELL_ERROR
 dbell_destroy(dbell_clock_t* clock);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // DOORBELL_H

@@ -29,6 +29,7 @@ processCronString(char const* string, CronVals* oCronVals)
     void* dbellParser = doorbellParserAlloc(malloc);
     DBELL_ERROR ret = DBELL_SUCCESS;
     int token = 0;
+    YY_BUFFER_STATE buffer;
 
     if(dbellParser == NULL)
     {
@@ -38,7 +39,7 @@ processCronString(char const* string, CronVals* oCronVals)
 //    doorbellParserTrace(stderr, "dbell");
     
     memset(oCronVals, 0, sizeof(CronVals));
-    YY_BUFFER_STATE buffer = yy_scan_string(string);
+    buffer = yy_scan_string(string);
     while(1)
     {
         memset(&theToken, 0, sizeof(Token));
