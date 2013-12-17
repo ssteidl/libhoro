@@ -5,22 +5,51 @@
 
 typedef enum
 {
+    /** Operation was successful */
     DBELL_SUCCESS = 0x0,
+
+    /** A parameter passed into the function was NULL or out of range*/
     DBELL_ERROR_ILLEGAL_ARG = 0x1,
+
+    /** malloc returned NULL */
     DBELL_ERROR_NO_MEM = 0x2,
+
+    /** A parameter passed into the function was not initialized */
     DBELL_ERROR_NOT_INITIALIZED = 0x3,
+
+    /** An internal datastructure has been corrupted */
     DBELL_ERROR_CORRUPT = 0x4,
+
+    /** Schedule string minute field is out of range */
     DBELL_ERROR_PARSER_MINUTE_RANGE = 0x5,
+
+    /** Schedule string hour field is out of range */
     DBELL_ERROR_PARSER_HOUR_RANGE = 0x6,
+
+    /** Schedule string day of month field is out of range */
     DBELL_ERROR_PARSER_DOM_RANGE = 0x7,
+
+    /** Schedule string month field is out of range */
     DBELL_ERROR_PARSER_MONTH_RANGE = 0x8,
+
+    /** Schedule string day of week field is out of range */
     DBELL_ERROR_PARSER_DOW_RANGE = 0x9,
+
+    /** A field in the schedule string is not understood */
     DBELL_ERROR_PARSER_ILLEGAL_FIELD = 0xA,
+
+    /** Generic schedule string out of range.  This is returned
+     * when a field of the schedule string would overflow an internal
+     * buffer.  Any number that is greater than 2 digits in the schedule
+     * string will cause this error to be returned. */
     DBELL_ERROR_OUT_OF_RANGE = 0xB,
+
+    /** Returned by dbell_unscheduleAction() when the given actionID cannot
+     * be found. */
     DBELL_ERROR_UNKNOWN_ACTION = 0xC
 }DBELL_ERROR;
 
-//REVIEW: Does this need to be part of the public interface?
+
 #define DBELL_ASTERISK (uint64_t)0xFFFFFFFFFFFFFFFF
 
 /** 
@@ -33,11 +62,11 @@ typedef enum
  */
 struct dbell_time
 {
-    int minute;
-    int hour;
-    int dayOfMonth;
-    int month;
-    int dayOfWeek;
+    int minute; /**< 0-59*/
+    int hour; /**< 0-23*/
+    int dayOfMonth; /**< 1-31*/
+    int month; /**< 1-12*/
+    int dayOfWeek; /**< 0-7 (0 or 7 is Sun)*/
 };
 typedef struct dbell_time dbell_time_t;
 
@@ -98,14 +127,74 @@ DBELL_ERROR
 dbell_unscheduleAction(dbell_clock_t* clock, int actionID);
 
 /**
+ * The number of actions that are scheduled to be executed by 'clock'.
  *
+ * @param[in] clock A clock structure to which the actions are attached.
+ *
+ * @param[out] oActionCount The number of actions attached to the clock.
  */
 DBELL_ERROR
 dbell_actionCount(dbell_clock_t* clock, int* oActionCount);
 
+/**
+ * The asynchronous interface to libdoorbell. This function must be called at least
+ * every minute.  If it is not called at least every minute than any action scheduled
+ * for the minute that was skipped will not execute. Therefore, tasks that take longer
+ * than 1 minute to execute must be executed in their own thread.
+ *
+ * !!NOTE: libdoorbell knows nothing about threads and is not thread safe.
+ * dbell_process() must always be called by the same thread.
+ *
+ * @param[in] clock A clock structure to which the actions are attached.
+ *
+ * @param[in] timeVals A dbell_time_t structure that is used by the scheduler as the
+ * current time.  This structure is generally filled in with the values returned by
+ * the localtime() system function.
+ * 
+ * !!NOTE: If using localtime() to fill in the timeVals structure, you must add 1 to
+ * the tm_mon field as shown in the example below.  This is because localtime()
+ * returns 0-11 and the crontab spec expects 1-12.
+ *
+ * Below is an example of using dbellprocess(). For a full example of using libdoorbell, 
+ * see cronprint.c
+ * EXAMPLE:
+ *
+ *   DBELL_ERROR err = DBELL_SUCCESS;
+ *   dbell_clock_t* clock = NULL;
+ *   time_t rawTime;
+ *   struct tm* timeinfo;
+ *   dbell_time_t dbellTime;
+ *
+ *   //Create clock and schedule action....
+ *
+ *   while(1)
+ *   {
+ *
+ *       rawTime = time(NULL);
+ *
+ *       timeinfo = localtime(&rawTime);
+ *       dbellTime.minute = timeinfo->tm_min;
+ *       dbellTime.hour = timeinfo->tm_hour;
+ *       dbellTime.dayOfMonth = timeinfo->tm_mday;
+ *
+ *       //!! NOTICE THE +1 !!
+ *       dbellTime.month = timeinfo->tm_mon + 1;
+ *
+ *
+ *       dbellTime.dayOfWeek = timeinfo->tm_wday;
+ *       err = dbell_process(clock, &dbellTime);
+ *       
+ *       //Do other stuff that takes less than 1 minute.
+ *   }
+ */
 DBELL_ERROR
 dbell_process(dbell_clock_t* clock, dbell_time_t const* timeVals);
 
+/**
+ * Return clock's resources to the system.
+ *
+ * @param[in] clock The clock structure to be destroyed.
+ */
 DBELL_ERROR
 dbell_destroy(dbell_clock_t* clock);
 
