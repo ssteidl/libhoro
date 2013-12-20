@@ -1,3 +1,8 @@
+/**
+ * December 19, 2013
+ * The author disclaims copyright to this source code.
+ */
+
 #include "doorbell.h" /*Use <> so that doorbell.h can
                        *reside in a different directory from the source.*/
 #include "Parser.h"

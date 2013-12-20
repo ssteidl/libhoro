@@ -1,3 +1,8 @@
+#
+# December 19, 2013
+# The author disclaims copyright to this source code.
+#
+
 #For mingw we need to check if we have Windows_NT or not.
 ifeq ($(OS), Windows_NT)
 	EXE := .exe	

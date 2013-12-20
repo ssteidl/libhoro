@@ -1,3 +1,8 @@
+/**
+ * December 19, 2013
+ * The author disclaims copyright to this source code.
+ */
+
 %option noyywrap
 
 %{

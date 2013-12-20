@@ -1,3 +1,8 @@
+/**
+ * December 19, 2013
+ * The author disclaims copyright to this source code.
+ */
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>

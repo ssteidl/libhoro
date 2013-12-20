@@ -1,3 +1,8 @@
+#
+# December 19, 2013
+# The author disclaims copyright to this source code.
+#
+
 all: cronprint.exe test.exe
 
 dbell-amal.obj: dbell-amal.c doorbell.h
