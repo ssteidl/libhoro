@@ -1,0 +1,166 @@
+<h3>What is libhoro?</h3>
+
+libhoro is a simple cross platform C library that allows developers to easily schedule actions
+(callbacks) based on a descriptive cron style string.  The design of libhoro is such that it can
+easily integrate into any program event loop.
+
+<h3>What does horo mean?</h3>
+
+Horo is short for horology.  Horology is the study of time.  We thought it would be a clever name.
+
+<h3>Can I see and example of how it works?</h3>
+
+Absolutely.  Below is a short explanation of how to use libhoro. Also, the test program
+[/doc/trunk/src/cronprint.c|cronprint.c] is a very simple example of using the libhoro interface.
+
+<ol>
+  <li> 
+    Declare and initialze a dbell pointer.  dbell_init() will allocate memory
+    so the dbell_clock_t must be destroyed with dbell_destroy.
+    <blockquote><verbatim>
+      dbell_clock_t* clock = NULL;
+      DBELL_ERROR err = dbell_init(&clock)
+    </verbatim></blockquote>
+  </li>
+  <li>
+    Declare and implement an action callback which will be executed as
+    described in the cron schedule string.  This particular action
+    callback prints a timestamp and a string that is passed to the
+    callback as actionData.  As shown in the next step, actionData can
+    be linked to an action callback when scheduling the action.
+    <blockquote><verbatim>
+      void printCB(void* actionData)
+      {
+          time_t rawTime;
+          struct tm* timeinfo;
+
+          rawTime = time(NULL);
+          timeinfo = localtime(&rawTime);
+          fprintf(stdout, "%s: %s\n", asctime(timeinfo), (char*)actionData);
+      }
+    </verbatim></blockquote>
+  </li>
+  <li>
+    Schedule the action using a cron string to describe the schedule.  The 
+    following lists describes the parameters to dbell_scheduldeAction()
+    <ol>
+      <li>
+	<strong>clock</strong>: The dbell_clock_t that was created in step 1.
+      </li>
+      <li>
+	<strong>cron string</strong>: The cron string used to describe the 
+	schedule for the action.
+      </li>
+      <li>
+	<strong>action callback</strong>: The action callback to be executed
+	as described by the cron string.
+      </li>
+      <li>
+	<strong>action data</strong>: A void* pointer that can point to 
+	anything.  This pointer will be passed as a parameter to the 
+	action callback.
+      </li>
+      <li>
+	<strong>actionID</strong>: An ID that can be used to unschedule the
+	action.
+      </li>
+    </ol>
+    <blockquote><verbatim>
+      err = dbell_scheduleAction(clock, "*/10 9-14 23 6 *", printCB, "This string is my action data", &actionID);
+    </verbatim></blockquote>
+  </li>
+  <li>
+    Now that the action has been scheduled, the dbell_process()
+    function needs to be integrated into the application's main event
+    loop.  To keep things simple, libhoro pushes all platform specific
+    details onto the integrating application.  libhoro simply requires
+    that dbell_process() be called at least 1 time every minute.  This can
+    be implemented however the calling application deems fit. <br />
+    <ul>
+      <li>A Linux application could use timer_fd and select().</li>
+      <li>A Win32 application could use SetTimer() in it's main loop.</li>
+      <li>A QT based application could use a QTimer.</li>
+    </ul> <br />
+    No matter how it is integrated, dbell_process() must be called at
+    least one time every minute with a dbell_time_t structure that
+    contains the current time.  A very simple event loop is shown
+    below:
+    <blockquote><verbatim>
+    while(1)
+    {
+        /*Retrieve a timestamp.*/
+        time_t rawTime = time(NULL);
+
+        /*Break up the time stamp into a timeinfo struct*/
+        struct tm* timeinfo = localtime(&rawTime);
+
+        /*dbell_time_t must be filled out with the current time.*/
+        dbell_time_t dbellTime;
+        dbellTime.minute = timeinfo->tm_min;
+        dbellTime.hour = timeinfo->tm_hour;
+        dbellTime.dayOfMonth = timeinfo->tm_mday;
+        dbellTime.month = timeinfo->tm_mon;
+        dbellTime.dayOfWeek = timeinfo->tm_wday;
+
+        /*Will call any necessary actions scheduled for the current dbellTime*/
+        err = dbell_process(clock, &dbellTime);
+        
+        /*Wait until the next minute*/
+        delay();
+    }
+    </verbatim></blockquote>
+    <li>
+      TODO: Unschedule action.
+    </li>
+    <li>
+      Remember, a dbell_clock_t object that was initialized with dbell_init() 
+      must be destroyed with dbell_destroy().
+      
+    </li>
+    <blockquote><verbatim>
+	err = dbell_destroy(clock);
+    </verbatim></blockquote>
+  </li>
+</ol>
+
+<h3>What If My Actions Take Longer Than a Minute?</h3>
+I your actions take longer than a minute than they should be executed
+in a separate thread.  As previously mentioned, dbell_process() must
+be executed at least once per minute.
+
+<h3>What Happens If I Don't Call dbell_process() Every Minute?</h3>
+If you don't call dbell_process() in a given minute than any action that
+should have been executed in that minute will not be executed. In fact,
+if multiple actions are scheduled for the same minute, than they must all
+finish within 1 minute or execute in a separate thread.
+
+<h3>Is libdoorbell Thread Safe?</h3>
+No, currently flex is used as the cron string lexer which is not thread
+safe.  However, actions can certainly spawn their own threads.
+
+<h3>Which Platforms Are Supported?</h3>
+Currently Linux and Microsoft Windows.  However, there is plan to
+support FreeBSD and other BSDs.  libhoro is written in
+C89 so it <strong>should</strong> work on the BSD platforms already, it just
+hasn't been thoroughly tested.
+
+<h3>Which Compilers are Supported?</h3>
+Currently GCC and Microsoft Visual C.
+
+<h3>How Do I Integrate libhoro Into My Project?</h3>
+TODO: Talk about Makefile examples and amalgamation.  Currently no shared lib.
+
+<h3>Is There a Feature RoadMap for libhoro?</h3>
+It depends on user feedback, but a rough roadmap is as follows:
+<ol>
+  <li>
+    Add a seconds field to cron strings so that a higher resolution
+    schedule is possible.
+  </li>
+  <li>
+    Add support for month and weekday names.
+  </li>
+  <li>
+    Add a syncronous interface.  This implies multi-platform support.
+  </li>
+</ol>

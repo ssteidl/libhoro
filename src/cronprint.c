@@ -16,7 +16,7 @@ delay()
 static void
 delay()
 {
-    usleep(1000);
+    usleep(1000 * 1000);
 }
 #endif
 
@@ -42,7 +42,7 @@ main(int argc, char** argv)
 {
     DBELL_ERROR err = DBELL_SUCCESS;
     dbell_clock_t* clock = NULL;
-    int alarmID;
+    int actionID;
     time_t rawTime;
     struct tm* timeinfo;
     dbell_time_t dbellTime;
@@ -60,7 +60,7 @@ main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    err = dbell_scheduleAction(clock, argv[1], printCB, argv[2], &alarmID);
+    err = dbell_scheduleAction(clock, argv[1], printCB, argv[2], &actionID);
     if(err)
     {
         fprintf(stderr, "Error with dbell_scheduleAction: %d\n", err);
@@ -76,7 +76,11 @@ main(int argc, char** argv)
         dbellTime.minute = timeinfo->tm_min;
         dbellTime.hour = timeinfo->tm_hour;
         dbellTime.dayOfMonth = timeinfo->tm_mday;
-        dbellTime.month = timeinfo->tm_mon;
+
+        //!! NOTICE THE +1 !!
+        dbellTime.month = timeinfo->tm_mon + 1;
+
+
         dbellTime.dayOfWeek = timeinfo->tm_wday;
         err = dbell_process(clock, &dbellTime);
         delay();
@@ -86,7 +90,6 @@ main(int argc, char** argv)
 
     if(0)
     {
-        dummy = 0;
     Error:
         exit(EXIT_FAILURE);
     }

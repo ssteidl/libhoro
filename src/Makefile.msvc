@@ -4,7 +4,7 @@ dbell-amal.obj: dbell-amal.c doorbell.h
 	cl /nologo /c  dbell-amal.c 
 
 test.exe: dbell-amal.obj
-	cl  /nologo test.c dbell-amal.obj
+	cl  /EHsc /nologo test.cpp dbell-amal.obj
 
 cronprint.exe: dbell-amal.obj
 	cl /nologo cronprint.c dbell-amal.obj

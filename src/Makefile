@@ -28,8 +28,8 @@ cron.o: cron.c
 libdoorbell.o: cron.o doorbell.c
 	gcc -g -O0 -c doorbell.c -o libdoorbell.o
 
-test: test.c libdoorbell.o lex.horo.o Parser.o
-	gcc -g -O0 -o test test.c libdoorbell.o cron.o lex.horo.o Parser.o
+test: test.cpp libdoorbell.o lex.horo.o Parser.o
+	g++ -g -O0 -o test test.cpp libdoorbell.o cron.o lex.horo.o Parser.o
 
 dbell-amal.c: cron.c lex.horo.c lemon.c Parser.c
 	tclsh86.exe mkamal.tcl
@@ -38,13 +38,13 @@ dbell-amal.o: dbell-amal.c
 	gcc -g -O0 -c -o dbell-amal.o dbell-amal.c 
 
 test-amal: dbell-amal.o
-	gcc -g -otest-amal test.c dbell-amal.o
+	g++ -g -otest-amal test.cpp dbell-amal.o
 
 cronprint: cronprint.c libdoorbell.o lex.horo.o Parser.o
 	gcc -g -O0 -o cronprint cronprint.c libdoorbell.o cron.o lex.horo.o Parser.o
 
 cronprint-amal: dbell-amal.o
-	gcc -g -ocronprint-amal test.c dbell-amal.o
+	gcc -g -ocronprint-amal cronprint.c dbell-amal.o
 
 libdoorbell-amal.tgz: dbell-amal.c doorbell.h
 	tar -cf libdoorbell-amal.tgz dbell-amal.c doorbell.h
