@@ -15,11 +15,11 @@ Absolutely.  Below is a short explanation of how to use libhoro. Also, the test 
 
 <ol>
   <li> 
-    Declare and initialze a dbell pointer.  dbell_init() will allocate memory
-    so the dbell_clock_t must be destroyed with dbell_destroy.
+    Declare and initialze a horo pointer.  horo_init() will allocate memory
+    so the horo_clock_t must be destroyed with horo_destroy.
     <blockquote><verbatim>
-      dbell_clock_t* clock = NULL;
-      DBELL_ERROR err = dbell_init(&clock)
+      horo_clock_t* clock = NULL;
+      HORO_ERROR err = horo_init(&clock)
     </verbatim></blockquote>
   </li>
   <li>
@@ -42,10 +42,10 @@ Absolutely.  Below is a short explanation of how to use libhoro. Also, the test 
   </li>
   <li>
     Schedule the action using a cron string to describe the schedule.  The 
-    following lists describes the parameters to dbell_scheduldeAction()
+    following lists describes the parameters to horo_scheduldeAction()
     <ol>
       <li>
-	<strong>clock</strong>: The dbell_clock_t that was created in step 1.
+	<strong>clock</strong>: The horo_clock_t that was created in step 1.
       </li>
       <li>
 	<strong>cron string</strong>: The cron string used to describe the 
@@ -66,23 +66,23 @@ Absolutely.  Below is a short explanation of how to use libhoro. Also, the test 
       </li>
     </ol>
     <blockquote><verbatim>
-      err = dbell_scheduleAction(clock, "*/10 9-14 23 6 *", printCB, "This string is my action data", &actionID);
+      err = horo_scheduleAction(clock, "*/10 9-14 23 6 *", printCB, "This string is my action data", &actionID);
     </verbatim></blockquote>
   </li>
   <li>
-    Now that the action has been scheduled, the dbell_process()
+    Now that the action has been scheduled, the horo_process()
     function needs to be integrated into the application's main event
     loop.  To keep things simple, libhoro pushes all platform specific
     details onto the integrating application.  libhoro simply requires
-    that dbell_process() be called at least 1 time every minute.  This can
+    that horo_process() be called at least 1 time every minute.  This can
     be implemented however the calling application deems fit. <br />
     <ul>
       <li>A Linux application could use timer_fd and select().</li>
       <li>A Win32 application could use SetTimer() in it's main loop.</li>
       <li>A QT based application could use a QTimer.</li>
     </ul> <br />
-    No matter how it is integrated, dbell_process() must be called at
-    least one time every minute with a dbell_time_t structure that
+    No matter how it is integrated, horo_process() must be called at
+    least one time every minute with a horo_time_t structure that
     contains the current time.  A very simple event loop is shown
     below:
     <blockquote><verbatim>
@@ -94,16 +94,16 @@ Absolutely.  Below is a short explanation of how to use libhoro. Also, the test 
         /*Break up the time stamp into a timeinfo struct*/
         struct tm* timeinfo = localtime(&rawTime);
 
-        /*dbell_time_t must be filled out with the current time.*/
-        dbell_time_t dbellTime;
-        dbellTime.minute = timeinfo->tm_min;
-        dbellTime.hour = timeinfo->tm_hour;
-        dbellTime.dayOfMonth = timeinfo->tm_mday;
-        dbellTime.month = timeinfo->tm_mon;
-        dbellTime.dayOfWeek = timeinfo->tm_wday;
+        /*horo_time_t must be filled out with the current time.*/
+        horo_time_t horoTime;
+        horoTime.minute = timeinfo->tm_min;
+        horoTime.hour = timeinfo->tm_hour;
+        horoTime.dayOfMonth = timeinfo->tm_mday;
+        horoTime.month = timeinfo->tm_mon;
+        horoTime.dayOfWeek = timeinfo->tm_wday;
 
-        /*Will call any necessary actions scheduled for the current dbellTime*/
-        err = dbell_process(clock, &dbellTime);
+        /*Will call any necessary actions scheduled for the current horoTime*/
+        err = horo_process(clock, &horoTime);
         
         /*Wait until the next minute*/
         delay();
@@ -113,28 +113,28 @@ Absolutely.  Below is a short explanation of how to use libhoro. Also, the test 
       TODO: Unschedule action.
     </li>
     <li>
-      Remember, a dbell_clock_t object that was initialized with dbell_init() 
-      must be destroyed with dbell_destroy().
+      Remember, a horo_clock_t object that was initialized with horo_init() 
+      must be destroyed with horo_destroy().
       
     </li>
     <blockquote><verbatim>
-	err = dbell_destroy(clock);
+	err = horo_destroy(clock);
     </verbatim></blockquote>
   </li>
 </ol>
 
 <h3>What If My Actions Take Longer Than a Minute?</h3>
 I your actions take longer than a minute than they should be executed
-in a separate thread.  As previously mentioned, dbell_process() must
+in a separate thread.  As previously mentioned, horo_process() must
 be executed at least once per minute.
 
-<h3>What Happens If I Don't Call dbell_process() Every Minute?</h3>
-If you don't call dbell_process() in a given minute than any action that
+<h3>What Happens If I Don't Call horo_process() Every Minute?</h3>
+If you don't call horo_process() in a given minute than any action that
 should have been executed in that minute will not be executed. In fact,
 if multiple actions are scheduled for the same minute, than they must all
 finish within 1 minute or execute in a separate thread.
 
-<h3>Is libdoorbell Thread Safe?</h3>
+<h3>Is libhoro Thread Safe?</h3>
 No, currently flex is used as the cron string lexer which is not thread
 safe.  However, actions can certainly spawn their own threads.
 

@@ -5,14 +5,14 @@
 
 all: cronprint.exe test.exe
 
-dbell-amal.obj: dbell-amal.c doorbell.h
-	cl /nologo /c  dbell-amal.c 
+horo-amal.obj: horo-amal.c horo.h
+	cl /nologo /c  horo-amal.c 
 
-test.exe: dbell-amal.obj
-	cl  /EHsc /nologo test.cpp dbell-amal.obj
+test.exe: horo-amal.obj
+	cl  /EHsc /nologo test.cpp horo-amal.obj
 
-cronprint.exe: dbell-amal.obj
-	cl /nologo cronprint.c dbell-amal.obj
+cronprint.exe: horo-amal.obj
+	cl /nologo cronprint.c horo-amal.obj
 
 clean:
 	del *.exe *.obj

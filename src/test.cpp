@@ -9,11 +9,11 @@
 #include <string.h>
 #include <time.h>
 
-#include "doorbell.h"
+#include "horo.h"
 
 typedef struct
 {
-    dbell_time_t expectedTimeVals;
+    horo_time_t expectedTimeVals;
     int error;
 }testData_t;
 
@@ -62,12 +62,12 @@ char *errorStrings[] = {
    @param expectError Set this to true if it is expected that the combination of
    the cronString and the simulated time values will not fire an action.
 
-   @param expectedScheduleError Set this to a specific DBELL_ERROR if a parsing
+   @param expectedScheduleError Set this to a specific HORO_ERROR if a parsing
    error is expected.
 
-   @param expectedProcessError Set this to a specific DBELL_ERROR if a process 
+   @param expectedProcessError Set this to a specific HORO_ERROR if a process 
    error is expected.  A process error is any error that occurs when calling
-   dbell_parse().
+   horo_parse().
  */
 static void
 runTest(const char* cronString,
@@ -77,15 +77,15 @@ runTest(const char* cronString,
         int currentMonth,
         int currentDayOfWeek,
         int expectError,
-	DBELL_ERROR expectedScheduleError,
-	DBELL_ERROR expectedProcessError)
+	HORO_ERROR expectedScheduleError,
+	HORO_ERROR expectedProcessError)
 {
-    dbell_clock_t* clock = NULL;
+    horo_clock_t* clock = NULL;
     int actionID;
     testData_t testData;
-    DBELL_ERROR scheduleError = DBELL_SUCCESS;
-    DBELL_ERROR processError = DBELL_SUCCESS;
-    dbell_init(&clock);
+    HORO_ERROR scheduleError = HORO_SUCCESS;
+    HORO_ERROR processError = HORO_SUCCESS;
+    horo_init(&clock);
     memset(&testData, 0, sizeof(testData));
     testData.expectedTimeVals.minute = currentMinute;
     testData.expectedTimeVals.hour = currentHour;
@@ -94,7 +94,7 @@ runTest(const char* cronString,
     testData.expectedTimeVals.dayOfWeek = currentDayOfWeek;
     testData.error = 1;
 
-    scheduleError = dbell_scheduleAction(clock, cronString, 
+    scheduleError = horo_scheduleAction(clock, cronString, 
                                          action, &testData, &actionID);
 
     if(scheduleError != expectedScheduleError)
@@ -104,7 +104,7 @@ runTest(const char* cronString,
         exit(1);
     }
 
-    processError = dbell_process(clock, &testData.expectedTimeVals);
+    processError = horo_process(clock, &testData.expectedTimeVals);
     if(expectedProcessError != processError)
     {
         fprintf(stderr, "Test failed. Expected: %s, but was: %s\n", 
@@ -124,15 +124,15 @@ runTest(const char* cronString,
         exit(1);
     }
 
-    dbell_destroy(clock);
+    horo_destroy(clock);
 }
 
 static void
 testSpecialStrings()
 {
     int expectError = 0;
-    DBELL_ERROR scheduleError = DBELL_SUCCESS;
-    DBELL_ERROR processError = DBELL_SUCCESS;
+    HORO_ERROR scheduleError = HORO_SUCCESS;
+    HORO_ERROR processError = HORO_SUCCESS;
 
     //@hourly
     runTest("@hourly", 0, 1, 1, 2, 0, expectError, scheduleError, processError);
@@ -166,8 +166,8 @@ void
 testLists()
 {
     int expectError = 0;
-    DBELL_ERROR scheduleError = DBELL_SUCCESS;
-    DBELL_ERROR processError = DBELL_SUCCESS;
+    HORO_ERROR scheduleError = HORO_SUCCESS;
+    HORO_ERROR processError = HORO_SUCCESS;
     runTest("0,1,2,3,4 * * * *", 0, 0, 1, 2, 0, expectError, scheduleError, processError);
     runTest("0,1,2,3,4 * * * *", 1, 0, 1, 2, 0, expectError, scheduleError, processError);
     runTest("0,1,2,3,4 * * * *", 2, 0, 1, 2, 0, expectError, scheduleError, processError);
@@ -181,29 +181,29 @@ void
 testRanges()
 {
     int expectError = 0;
-    DBELL_ERROR scheduleError = DBELL_SUCCESS;
-    DBELL_ERROR processError = DBELL_SUCCESS;
+    HORO_ERROR scheduleError = HORO_SUCCESS;
+    HORO_ERROR processError = HORO_SUCCESS;
     runTest("* 8-10 * * *", 7, 8, 10, 11, 6, expectError, scheduleError, processError);
     runTest("* 1-10/2 * 11 *", 7, 3, 10, 11, 6, expectError, scheduleError, processError);
 
     expectError = 1;
-    scheduleError = DBELL_ERROR_OUT_OF_RANGE; //Too many digits in 1000 only 2 digits allowed 
-    processError = DBELL_SUCCESS;
+    scheduleError = HORO_ERROR_OUT_OF_RANGE; //Too many digits in 1000 only 2 digits allowed 
+    processError = HORO_SUCCESS;
     runTest("* 1-1000 * * *", 7, 8, 10, 11, 6, expectError, scheduleError, processError);
 
     expectError = 1;
-    scheduleError = DBELL_SUCCESS;
-    processError = DBELL_SUCCESS;
+    scheduleError = HORO_SUCCESS;
+    processError = HORO_SUCCESS;
     runTest("* 1-10/2 * 11 *", 7, 8, 10, 11, 6, expectError, scheduleError, processError);
 
     expectError = 0;
-    scheduleError = DBELL_SUCCESS;
-    processError = DBELL_SUCCESS;
+    scheduleError = HORO_SUCCESS;
+    processError = HORO_SUCCESS;
     runTest("*/3 1-10/2 * 11 *", 6, 9, 10, 11, 6, expectError, scheduleError, processError);
 
     expectError = 1;
-    scheduleError = DBELL_SUCCESS;
-    processError = DBELL_SUCCESS;
+    scheduleError = HORO_SUCCESS;
+    processError = HORO_SUCCESS;
     runTest("*/3 1-10/2 * 11 *", 7, 9, 10, 11, 6, expectError, scheduleError, processError);
 }
 
@@ -211,35 +211,35 @@ void
 testMaxVals()
 {
     int expectError = 0;
-    DBELL_ERROR scheduleError = DBELL_SUCCESS;
-    DBELL_ERROR processError = DBELL_SUCCESS;
+    HORO_ERROR scheduleError = HORO_SUCCESS;
+    HORO_ERROR processError = HORO_SUCCESS;
     runTest("* 21-23 * * *", 7, 22, 10, 11, 6, 
             expectError, scheduleError, processError);
 
     runTest("0-59 0-23 1-31 1-12 0-7", 59, 23, 31, 12, 7,
             expectError, scheduleError, processError);
 
-    scheduleError = DBELL_ERROR_PARSER_MINUTE_RANGE;
+    scheduleError = HORO_ERROR_PARSER_MINUTE_RANGE;
     expectError = 1;
     runTest("60 * * * *", 13, 8, 10, 11, 6,
             expectError, scheduleError, processError);
 
-    scheduleError = DBELL_ERROR_PARSER_HOUR_RANGE;
+    scheduleError = HORO_ERROR_PARSER_HOUR_RANGE;
     expectError = 1;
     runTest("* 24 * * *", 13, 8, 10, 11, 6,
             expectError, scheduleError, processError);
 
-    scheduleError = DBELL_ERROR_PARSER_DOM_RANGE;
+    scheduleError = HORO_ERROR_PARSER_DOM_RANGE;
     expectError = 1;
     runTest("* * 32 * *", 13, 8, 10, 11, 6,
             expectError, scheduleError, processError);
 
-    scheduleError = DBELL_ERROR_PARSER_MONTH_RANGE;
+    scheduleError = HORO_ERROR_PARSER_MONTH_RANGE;
     expectError = 1;
     runTest("* * * 13 *", 13, 8, 10, 11, 6,
             expectError, scheduleError, processError);
 
-    scheduleError = DBELL_ERROR_PARSER_DOW_RANGE;
+    scheduleError = HORO_ERROR_PARSER_DOW_RANGE;
     expectError = 1;
     runTest("* * * * 8", 13, 8, 10, 11, 6,
             expectError, scheduleError, processError);
@@ -254,72 +254,72 @@ dummyAction(void* unused)
 static void
 testRemove()
 {
-    dbell_clock_t* clock = NULL;
-    DBELL_ERROR err = DBELL_SUCCESS;
+    horo_clock_t* clock = NULL;
+    HORO_ERROR err = HORO_SUCCESS;
     int actionID = -1;
     int count = 0;
 
-    err = dbell_init(&clock);
+    err = horo_init(&clock);
     if(err)
     {
         fprintf(stderr, "Error initializing clock: %s\n", errorStrings[err]);
         exit(err);
     }
 
-    err = dbell_actionCount(clock, &count);
-    assert(err == DBELL_SUCCESS);
+    err = horo_actionCount(clock, &count);
+    assert(err == HORO_SUCCESS);
     assert(count == 0);
 
-    err = dbell_scheduleAction(clock, "* * * * *", dummyAction, 
+    err = horo_scheduleAction(clock, "* * * * *", dummyAction, 
                                NULL, &actionID);
     assert(actionID == 0);
-    assert(err == DBELL_SUCCESS);
+    assert(err == HORO_SUCCESS);
 
-    err = dbell_scheduleAction(clock, "* * * * *", dummyAction, 
+    err = horo_scheduleAction(clock, "* * * * *", dummyAction, 
                                 NULL, &actionID);
     assert(actionID == 1);
-    assert(err == DBELL_SUCCESS);
+    assert(err == HORO_SUCCESS);
 
-    err = dbell_scheduleAction(clock, "* * * * *", dummyAction, 
+    err = horo_scheduleAction(clock, "* * * * *", dummyAction, 
                                 NULL, &actionID);
     assert(actionID == 2);
-    assert(err == DBELL_SUCCESS);
+    assert(err == HORO_SUCCESS);
 
-    err = dbell_scheduleAction(clock, "* * * * *", dummyAction, 
+    err = horo_scheduleAction(clock, "* * * * *", dummyAction, 
                                 NULL, &actionID);
     assert(actionID == 3);
-    assert(err == DBELL_SUCCESS);
+    assert(err == HORO_SUCCESS);
 
-    err = dbell_scheduleAction(clock, "* * * * *", dummyAction, 
+    err = horo_scheduleAction(clock, "* * * * *", dummyAction, 
                                 NULL, &actionID);
     assert(actionID == 4);
-    assert(err == DBELL_SUCCESS);
+    assert(err == HORO_SUCCESS);
 
-    err = dbell_actionCount(clock, &count);
-    assert(err == DBELL_SUCCESS);
+    err = horo_actionCount(clock, &count);
+    assert(err == HORO_SUCCESS);
     assert(count == 5);
 
-    err = dbell_unscheduleAction(clock, 0);
-    assert(err == DBELL_SUCCESS);
-    err = dbell_actionCount(clock, &count);
-    assert(err == DBELL_SUCCESS);
+    err = horo_unscheduleAction(clock, 0);
+    assert(err == HORO_SUCCESS);
+    err = horo_actionCount(clock, &count);
+    assert(err == HORO_SUCCESS);
     assert(count == 4);
 
-    err = dbell_unscheduleAction(clock, 4);
-    assert(err == DBELL_SUCCESS);
-    err = dbell_actionCount(clock, &count);
-    assert(err == DBELL_SUCCESS);
+    err = horo_unscheduleAction(clock, 4);
+    assert(err == HORO_SUCCESS);
+    err = horo_actionCount(clock, &count);
+    assert(err == HORO_SUCCESS);
     assert(count == 3);
 
-    err = dbell_unscheduleAction(clock, 2);
-    assert(err == DBELL_SUCCESS);
-    err = dbell_unscheduleAction(clock, 1);
-    assert(err == DBELL_SUCCESS);
-    err = dbell_unscheduleAction(clock, 3);
-    assert(err == DBELL_SUCCESS);
+    err = horo_unscheduleAction(clock, 2);
+    assert(err == HORO_SUCCESS);
+    err = horo_unscheduleAction(clock, 1);
+    assert(err == HORO_SUCCESS);
+    err = horo_unscheduleAction(clock, 3);
+    assert(err == HORO_SUCCESS);
 
-    err = dbell_actionCount(clock, &count);
-    assert(err == DBELL_SUCCESS);
+    err = horo_actionCount(clock, &count);
+    assert(err == HORO_SUCCESS);
     assert(count == 0);
 }
 

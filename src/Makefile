@@ -10,7 +10,7 @@ else
 	EXE :=
 endif
 
-all: test cronprint test-amal cronprint-amal libdoorbell-amal.tgz
+all: test cronprint test-amal cronprint-amal libhoro-amal.tgz
 
 lemon$(EXE): lemon.c
 	gcc -o lemon$(EXE) lemon.c
@@ -21,7 +21,7 @@ lex.horo.c: cron.l Parser.h
 lex.horo.o: lex.horo.c
 	gcc -g -O0 -c lex.horo.c
 
-Parser.o: Parser.h doorbell.h Parser.c
+Parser.o: Parser.h horo.h Parser.c
 	gcc -g -O0 -c Parser.c
 
 cron.c: cron.y lemon Parser.h
@@ -30,30 +30,30 @@ cron.c: cron.y lemon Parser.h
 cron.o: cron.c
 	gcc -g -O0 -c -o cron.o cron.c
 
-libdoorbell.o: cron.o doorbell.c
-	gcc -g -O0 -c doorbell.c -o libdoorbell.o
+libhoro.o: cron.o horo.c
+	gcc -g -O0 -c horo.c -o libhoro.o
 
-test: test.cpp libdoorbell.o lex.horo.o Parser.o
-	g++ -g -O0 -o test test.cpp libdoorbell.o cron.o lex.horo.o Parser.o
+test: test.cpp libhoro.o lex.horo.o Parser.o
+	g++ -g -O0 -o test test.cpp libhoro.o cron.o lex.horo.o Parser.o
 
-dbell-amal.c: cron.c lex.horo.c lemon.c Parser.c
+horo-amal.c: cron.c lex.horo.c lemon.c Parser.c
 	tclsh86.exe mkamal.tcl
 
-dbell-amal.o: dbell-amal.c
-	gcc -g -O0 -c -o dbell-amal.o dbell-amal.c 
+horo-amal.o: horo-amal.c
+	gcc -g -O0 -c -o horo-amal.o horo-amal.c 
 
-test-amal: dbell-amal.o
-	g++ -g -otest-amal test.cpp dbell-amal.o
+test-amal: horo-amal.o
+	g++ -g -otest-amal test.cpp horo-amal.o
 
-cronprint: cronprint.c libdoorbell.o lex.horo.o Parser.o
-	gcc -g -O0 -o cronprint cronprint.c libdoorbell.o cron.o lex.horo.o Parser.o
+cronprint: cronprint.c libhoro.o lex.horo.o Parser.o
+	gcc -g -O0 -o cronprint cronprint.c libhoro.o cron.o lex.horo.o Parser.o
 
-cronprint-amal: dbell-amal.o
-	gcc -g -ocronprint-amal cronprint.c dbell-amal.o
+cronprint-amal: horo-amal.o
+	gcc -g -ocronprint-amal cronprint.c horo-amal.o
 
-libdoorbell-amal.tgz: dbell-amal.c doorbell.h
-	tar -cf libdoorbell-amal.tgz dbell-amal.c doorbell.h
+libhoro-amal.tgz: horo-amal.c horo.h
+	tar -cf libhoro-amal.tgz horo-amal.c horo.h
 
 clean: 
-	rm -vf lemon$(EXE) lex.horo.c *.o *~ test$(EXE) cronprint$(EXE) dbell-amal.c \
-	cron.c cron.h cron.out test-amal$(EXE) cronprint-amal$(EXE) libdoorbell-amal.tgz
+	rm -vf lemon$(EXE) lex.horo.c *.o *~ test$(EXE) cronprint$(EXE) horo-amal.c \
+	cron.c cron.h cron.out test-amal$(EXE) cronprint-amal$(EXE) libhoro-amal.tgz

@@ -12,7 +12,7 @@
     fprintf(stderr, "Error!!\n");
 }
 
-%name doorbellParser
+%name horoParser
 
 %include {
 
@@ -30,7 +30,7 @@ cronstring ::= YEARLY. {
     cronVals->hour = 1 << 0;
     cronVals->dayOfMonth = 1 << 1;
     cronVals->month = 1 << 1;
-    cronVals->dayOfWeek = DBELL_ASTERISK;
+    cronVals->dayOfWeek = HORO_ASTERISK;
 }
 
 cronstring ::= MONTHLY. {
@@ -38,16 +38,16 @@ cronstring ::= MONTHLY. {
     cronVals->minute = 1 << 0;
     cronVals->hour = 1 << 0;
     cronVals->dayOfMonth = 1 << 1;
-    cronVals->month = DBELL_ASTERISK;
-    cronVals->dayOfWeek = DBELL_ASTERISK;
+    cronVals->month = HORO_ASTERISK;
+    cronVals->dayOfWeek = HORO_ASTERISK;
 }
 
 cronstring ::= WEEKLY. {
 
     cronVals->minute = 1 << 0;
     cronVals->hour = 1 << 0;
-    cronVals->dayOfMonth = DBELL_ASTERISK;
-    cronVals->month = DBELL_ASTERISK;
+    cronVals->dayOfMonth = HORO_ASTERISK;
+    cronVals->month = HORO_ASTERISK;
     cronVals->dayOfWeek = 1 << 0;
 }
 
@@ -55,28 +55,28 @@ cronstring ::= DAILY. {
 
     cronVals->minute = 1 << 0;
     cronVals->hour = 1 << 0;
-    cronVals->dayOfMonth = DBELL_ASTERISK;
-    cronVals->month = DBELL_ASTERISK;
-    cronVals->dayOfWeek = DBELL_ASTERISK;
+    cronVals->dayOfMonth = HORO_ASTERISK;
+    cronVals->month = HORO_ASTERISK;
+    cronVals->dayOfWeek = HORO_ASTERISK;
 }
 
 cronstring ::= HOURLY. {
 
     cronVals->minute = 1 << 0;
-    cronVals->hour = DBELL_ASTERISK;
-    cronVals->dayOfMonth = DBELL_ASTERISK;
-    cronVals->month = DBELL_ASTERISK;
-    cronVals->dayOfWeek = DBELL_ASTERISK;
+    cronVals->hour = HORO_ASTERISK;
+    cronVals->dayOfMonth = HORO_ASTERISK;
+    cronVals->month = HORO_ASTERISK;
+    cronVals->dayOfWeek = HORO_ASTERISK;
 }
 
 cronstring ::= cronfield(CF1) SPACE cronfield(CF2) SPACE cronfield(CF3) 
                SPACE cronfield(CF4) SPACE cronfield(CF5). {
 
-        if((cronVals->error = setCronFieldValues(&CF1, DBELL_POSITION_MINUTE)) ||
-           (cronVals->error = setCronFieldValues(&CF2, DBELL_POSITION_HOUR)) ||
-           (cronVals->error = setCronFieldValues(&CF3, DBELL_POSITION_DOM)) ||
-           (cronVals->error = setCronFieldValues(&CF4, DBELL_POSITION_MONTH)) ||
-           (cronVals->error = setCronFieldValues(&CF5, DBELL_POSITION_DOW)))
+        if((cronVals->error = setCronFieldValues(&CF1, HORO_POSITION_MINUTE)) ||
+           (cronVals->error = setCronFieldValues(&CF2, HORO_POSITION_HOUR)) ||
+           (cronVals->error = setCronFieldValues(&CF3, HORO_POSITION_DOM)) ||
+           (cronVals->error = setCronFieldValues(&CF4, HORO_POSITION_MONTH)) ||
+           (cronVals->error = setCronFieldValues(&CF5, HORO_POSITION_DOW)))
         {
             /*do nothing*/
         }
@@ -97,14 +97,14 @@ cronstring ::= cronfield(CF1) SPACE cronfield(CF2) SPACE cronfield(CF3)
 cronfield(CF) ::= ASTERISK. {
 
     memset(&CF, 0, sizeof(CF));
-    CF.type = DBELL_FIELD_TYPE_ASTERISK;
+    CF.type = HORO_FIELD_TYPE_ASTERISK;
     CF.typeVal.asteriskStep = 1;
 }
 
 cronfield(CF) ::= list(L) COMMA rangelist(RL). {
 
     memset(&CF, 0, sizeof(CF));
-    CF.type = DBELL_FIELD_TYPE_LIST | DBELL_FIELD_TYPE_RANGELIST;
+    CF.type = HORO_FIELD_TYPE_LIST | HORO_FIELD_TYPE_RANGELIST;
     memcpy(&CF.typeVal.list, &L, sizeof(L));
     memcpy(&CF.typeVal.range, &RL, sizeof(RL));
     //    cronFieldFromList(&L, &CF);
@@ -114,7 +114,7 @@ cronfield(CF) ::= list(L) COMMA rangelist(RL). {
 cronfield(CF) ::= list(L) COMMA range(R). {
 
     memset(&CF, 0, sizeof(CF));
-    CF.type = DBELL_FIELD_TYPE_LIST | DBELL_FIELD_TYPE_RANGE;
+    CF.type = HORO_FIELD_TYPE_LIST | HORO_FIELD_TYPE_RANGE;
     memcpy(&CF.typeVal.list, &L, sizeof(L));
     memcpy(&CF.typeVal.range, &R, sizeof(R));
     //    cronFieldFromList(&L, &CF);
@@ -124,7 +124,7 @@ cronfield(CF) ::= list(L) COMMA range(R). {
 cronfield(CF) ::= list(L) COMMA step(S). {
 
     memset(&CF, 0, sizeof(CF));
-    CF.type = DBELL_FIELD_TYPE_LIST | DBELL_FIELD_TYPE_RANGE;
+    CF.type = HORO_FIELD_TYPE_LIST | HORO_FIELD_TYPE_RANGE;
     memcpy(&CF.typeVal.list, &L, sizeof(L));
     memcpy(&CF.typeVal.range, &S, sizeof(S));
     //    cronFieldFromList(&L, &CF);
@@ -135,7 +135,7 @@ cronfield(CF) ::= list(L) COMMA step(S). {
 cronfield(CF) ::= list(L). {
 
     memset(&CF, 0, sizeof(CF));
-    CF.type = DBELL_FIELD_TYPE_LIST;
+    CF.type = HORO_FIELD_TYPE_LIST;
     memcpy(&CF.typeVal.list, &L, sizeof(L));
     //    cronFieldFromList(&L, &CF);
 }
@@ -143,21 +143,21 @@ cronfield(CF) ::= list(L). {
 cronfield(CF) ::= asteriskstep(AS). {
 
     memset(&CF, 0, sizeof(CF));
-    CF.type = DBELL_FIELD_TYPE_ASTERISK;
+    CF.type = HORO_FIELD_TYPE_ASTERISK;
     CF.typeVal.asteriskStep = AS.step;
 } 
 
 cronfield(CF) ::= step(S). {
 
     memset(&CF, 0, sizeof(CF));
-    CF.type = DBELL_FIELD_TYPE_RANGE;
+    CF.type = HORO_FIELD_TYPE_RANGE;
     memcpy(&CF.typeVal.range, &S, sizeof(S));
     //    cronFieldFromRange(&S, &CF);
 }
 cronfield(CF) ::= rangelist(RL). {
 
     memset(&CF, 0, sizeof(CF));
-    CF.type = DBELL_FIELD_TYPE_RANGELIST;
+    CF.type = HORO_FIELD_TYPE_RANGELIST;
     memcpy(&CF.typeVal.rangeList, &RL, sizeof(RL));
     //    cronFieldFromRangeList(&RL, &CF);
 }
@@ -165,7 +165,7 @@ cronfield(CF) ::= rangelist(RL). {
 cronfield(CF) ::= range(R). {
 
     memset(&CF, 0, sizeof(CF));
-    CF.type = DBELL_FIELD_TYPE_RANGE;
+    CF.type = HORO_FIELD_TYPE_RANGE;
     memcpy(&CF.typeVal.range, &R, sizeof(R));
     //    cronFieldFromRange(&R, &CF);
 }
@@ -173,7 +173,7 @@ cronfield(CF) ::= range(R). {
 cronfield(CF) ::= number(N). {
 
     memset(&CF, 0, sizeof(CF));
-    CF.type = DBELL_FIELD_TYPE_VALUE;
+    CF.type = HORO_FIELD_TYPE_VALUE;
     CF.typeVal.value = N;
     //    CF.val = (1 << N);
 }
@@ -269,7 +269,7 @@ number(NUM) ::= numString(NUM_STRING). {
     }
     else
     {
-        cronVals->error = DBELL_ERROR_OUT_OF_RANGE;
+        cronVals->error = HORO_ERROR_OUT_OF_RANGE;
     }
 }
 

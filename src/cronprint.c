@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "doorbell.h"
+#include "horo.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -45,12 +45,12 @@ void printCB(void* actionData)
 int
 main(int argc, char** argv)
 {
-    DBELL_ERROR err = DBELL_SUCCESS;
-    dbell_clock_t* clock = NULL;
+    HORO_ERROR err = HORO_SUCCESS;
+    horo_clock_t* clock = NULL;
     int actionID;
     time_t rawTime;
     struct tm* timeinfo;
-    dbell_time_t dbellTime;
+    horo_time_t horoTime;
     int dummy;
     if(argc != 3)
     {
@@ -58,17 +58,17 @@ main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
     
-    err = dbell_init(&clock);
+    err = horo_init(&clock);
     if(err)
     {
-        fprintf(stderr, "Error in dbell_init: %d\n", err);
+        fprintf(stderr, "Error in horo_init: %d\n", err);
         exit(EXIT_FAILURE);
     }
 
-    err = dbell_scheduleAction(clock, argv[1], printCB, argv[2], &actionID);
+    err = horo_scheduleAction(clock, argv[1], printCB, argv[2], &actionID);
     if(err)
     {
-        fprintf(stderr, "Error with dbell_scheduleAction: %d\n", err);
+        fprintf(stderr, "Error with horo_scheduleAction: %d\n", err);
         goto Error;
     }
 
@@ -78,20 +78,20 @@ main(int argc, char** argv)
         rawTime = time(NULL);
 
         timeinfo = localtime(&rawTime);
-        dbellTime.minute = timeinfo->tm_min;
-        dbellTime.hour = timeinfo->tm_hour;
-        dbellTime.dayOfMonth = timeinfo->tm_mday;
+        horoTime.minute = timeinfo->tm_min;
+        horoTime.hour = timeinfo->tm_hour;
+        horoTime.dayOfMonth = timeinfo->tm_mday;
 
         //!! NOTICE THE +1 !!
-        dbellTime.month = timeinfo->tm_mon + 1;
+        horoTime.month = timeinfo->tm_mon + 1;
 
 
-        dbellTime.dayOfWeek = timeinfo->tm_wday;
-        err = dbell_process(clock, &dbellTime);
+        horoTime.dayOfWeek = timeinfo->tm_wday;
+        err = horo_process(clock, &horoTime);
         delay();
     }
 
-    dbell_destroy(clock);
+    horo_destroy(clock);
 
     if(0)
     {

@@ -3,10 +3,10 @@
 # The author disclaims copyright to this source code.
 #
 
-set files [list doorbell.h cron.h Parser.h Parser.c cron.c lex.horo.c \
-               doorbell.c]
+set files [list horo.h cron.h Parser.h Parser.c cron.c lex.horo.c \
+               horo.c]
 
-set amalout [open "dbell-amal.c" [list WRONLY CREAT]];
+set amalout [open "horo-amal.c" [list WRONLY CREAT]];
 
 foreach file $files {
 
