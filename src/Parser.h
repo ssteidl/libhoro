@@ -1,7 +1,12 @@
+/**
+ * December 19, 2013
+ * The author disclaims copyright to this source code.
+ */
+
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "doorbell.h"
+#include "horo.h"
 
 struct Token
 {
@@ -11,11 +16,11 @@ struct Token
 typedef struct Token Token;
     
 enum {
-    DBELL_FIELD_TYPE_VALUE = 1,
-    DBELL_FIELD_TYPE_RANGE = 2,
-    DBELL_FIELD_TYPE_LIST = 4,
-    DBELL_FIELD_TYPE_RANGELIST = 8,
-    DBELL_FIELD_TYPE_ASTERISK = 16
+    HORO_FIELD_TYPE_VALUE = 1,
+    HORO_FIELD_TYPE_RANGE = 2,
+    HORO_FIELD_TYPE_LIST = 4,
+    HORO_FIELD_TYPE_RANGELIST = 8,
+    HORO_FIELD_TYPE_ASTERISK = 16
 };
 
 struct Range
@@ -69,22 +74,22 @@ struct CronVals
     uint64_t month;
     uint64_t dayOfWeek;
 
-    DBELL_ERROR error;
+    HORO_ERROR error;
 };
 typedef struct CronVals CronVals;
 
 typedef enum
 {
-    DBELL_POSITION_MINUTE,
-    DBELL_POSITION_HOUR,
-    DBELL_POSITION_DOM,
-    DBELL_POSITION_MONTH,
-    DBELL_POSITION_DOW
+    HORO_POSITION_MINUTE,
+    HORO_POSITION_HOUR,
+    HORO_POSITION_DOM,
+    HORO_POSITION_MONTH,
+    HORO_POSITION_DOW
 }FieldPosition_e;
 
-DBELL_ERROR
+HORO_ERROR
 setCronFieldValues(CronField *cronField, FieldPosition_e position);
 
-DBELL_ERROR 
+HORO_ERROR 
 processCronString(char const* string, CronVals* oCronVals);
 #endif

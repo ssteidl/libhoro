@@ -1,11 +1,16 @@
+/**
+ * December 19, 2013
+ * The author disclaims copyright to this source code.
+ */
+
 %option noyywrap
 
 %{
 #include "cron.h"
-#include "doorbell.h"
+#include "horo.h"
 #include "Parser.h"
 
-    void *doorbellParserAlloc(void* (*mallocProc)(size_t));
+    void *horoParserAlloc(void* (*mallocProc)(size_t));
 %}
 
 %%
@@ -22,21 +27,21 @@
 "@hourly" {return HOURLY; }
 %%
 
-DBELL_ERROR 
+HORO_ERROR 
 processCronString(char const* string, CronVals* oCronVals)
 {
     Token theToken;
-    void* dbellParser = doorbellParserAlloc(malloc);
-    DBELL_ERROR ret = DBELL_SUCCESS;
+    void* parser = horoParserAlloc(malloc);
+    HORO_ERROR ret = HORO_SUCCESS;
     int token = 0;
     YY_BUFFER_STATE buffer;
 
-    if(dbellParser == NULL)
+    if(parser == NULL)
     {
-        return DBELL_ERROR_ILLEGAL_ARG;
+        return HORO_ERROR_ILLEGAL_ARG;
     }
 
-//    doorbellParserTrace(stderr, "dbell");
+//    horoParserTrace(stderr, "horo");
     
     memset(oCronVals, 0, sizeof(CronVals));
     buffer = yy_scan_string(string);
@@ -48,8 +53,8 @@ processCronString(char const* string, CronVals* oCronVals)
         if(!token)
         {
             //If there are no more tokens, we need to call the parser one last time.
-            doorbellParser(dbellParser, 0, theToken, oCronVals);
-            if(oCronVals->error != DBELL_SUCCESS)
+            horoParser(parser, 0, theToken, oCronVals);
+            if(oCronVals->error != HORO_SUCCESS)
             {
                 ret = oCronVals->error;
             }
@@ -64,18 +69,18 @@ processCronString(char const* string, CronVals* oCronVals)
         }
         else
         {
-            ret = DBELL_ERROR_PARSER_ILLEGAL_FIELD;
+            ret = HORO_ERROR_PARSER_ILLEGAL_FIELD;
             break;
         }
-        doorbellParser(dbellParser, token, theToken, oCronVals);
-        if(oCronVals->error != DBELL_SUCCESS)
+        horoParser(parser, token, theToken, oCronVals);
+        if(oCronVals->error != HORO_SUCCESS)
         {
             ret = oCronVals->error;
             break;
         }
     }
 
-    doorbellParserFree(dbellParser, free);
+    horoParserFree(parser, free);
     yy_delete_buffer(buffer);
     return ret;
 }

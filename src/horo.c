@@ -1,4 +1,9 @@
-#include "doorbell.h" /*Use <> so that doorbell.h can
+/**
+ * December 19, 2013
+ * The author disclaims copyright to this source code.
+ */
+
+#include "horo.h" /*Use <> so that horo.h can
                        *reside in a different directory from the source.*/
 #include "Parser.h"
   
@@ -6,44 +11,44 @@
 #include <stdlib.h>
 #include <string.h>
   
-#define RETURN_ILLEGAL_IF(statement) if((statement)) return DBELL_ERROR_ILLEGAL_ARG
+#define RETURN_ILLEGAL_IF(statement) if((statement)) return HORO_ERROR_ILLEGAL_ARG
 
 #define VALIDATE_RANGE_OR_RETURN(var, min, max)  \
-    if(((var) < (min)) || ((var) > (max))) return DBELL_ERROR_OUT_OF_RANGE
+    if(((var) < (min)) || ((var) > (max))) return HORO_ERROR_OUT_OF_RANGE
 
 #define IS_INITIALIZED(container) ((container)->initKey == INITIALIZED_KEY)
 
-#define RETURN_IF_NOT_INITIALIZED(container) if(!IS_INITIALIZED((container))) return DBELL_ERROR_NOT_INITIALIZED
+#define RETURN_IF_NOT_INITIALIZED(container) if(!IS_INITIALIZED((container))) return HORO_ERROR_NOT_INITIALIZED
 
 
 typedef enum
 {
     CONTAINER_TYPE_LIST,
     CONTAINER_TYPE_MAP
-}dbellContainerType_e;
+}horoContainerType_e;
 
-typedef struct dbellContainerNode
+typedef struct horoContainerNode
 {
     void *data;
-    struct dbellContainerNode *next;
-    struct dbellContainerNode *prev;
-}dbellContainerNode_t;
+    struct horoContainerNode *next;
+    struct horoContainerNode *prev;
+}horoContainerNode_t;
 
 #define INITIALIZED_KEY 0x1217
-typedef struct dbellContainer
+typedef struct horoContainer
 {
-    dbellContainerType_e type;
+    horoContainerType_e type;
     int initKey;
-    dbellContainerNode_t *head;
-    dbellContainerNode_t *tail;
+    horoContainerNode_t *head;
+    horoContainerNode_t *tail;
     size_t numElements;
-}dbellContainer_t;
+}horoContainer_t;
 
-typedef DBELL_ERROR (*dbellList_forEachFunc)(void *data, void *userp);
-typedef dbellContainer_t dbellList_t;
+typedef HORO_ERROR (*horoList_forEachFunc)(void *data, void *userp);
+typedef horoContainer_t horoList_t;
 
-static DBELL_ERROR
-dbellList_init(dbellContainer_t *listToInit)
+static HORO_ERROR
+horoList_init(horoContainer_t *listToInit)
 {
     RETURN_ILLEGAL_IF(listToInit == NULL);
     listToInit->type = CONTAINER_TYPE_LIST;
@@ -51,18 +56,18 @@ dbellList_init(dbellContainer_t *listToInit)
     listToInit->head = NULL;
     listToInit->tail = NULL;
     listToInit->numElements = 0;
-    return DBELL_SUCCESS;
+    return HORO_SUCCESS;
 }
 
-static DBELL_ERROR
-dbellList_isInitialized(const dbellList_t* list)
+static HORO_ERROR
+horoList_isInitialized(const horoList_t* list)
 {
     RETURN_ILLEGAL_IF(list == NULL);
-    return IS_INITIALIZED(list)? DBELL_SUCCESS : DBELL_ERROR_NOT_INITIALIZED;
+    return IS_INITIALIZED(list)? HORO_SUCCESS : HORO_ERROR_NOT_INITIALIZED;
 }
 
 static void
-initListNode(dbellContainerNode_t *node)
+initListNode(horoContainerNode_t *node)
 {
     if(node == NULL) return;
     node->data = NULL;
@@ -71,7 +76,7 @@ initListNode(dbellContainerNode_t *node)
 }
 
 static void
-freeListNode(dbellContainerNode_t *node)
+freeListNode(horoContainerNode_t *node)
 {
     if(node != NULL)
     {
@@ -80,15 +85,15 @@ freeListNode(dbellContainerNode_t *node)
     }
 }
 
-static DBELL_ERROR
-addToEmptyList(dbellContainer_t *list, const void *value, size_t size)
+static HORO_ERROR
+addToEmptyList(horoContainer_t *list, const void *value, size_t size)
 {
-    DBELL_ERROR ret = DBELL_SUCCESS;
+    HORO_ERROR ret = HORO_SUCCESS;
 
-    list->head = (dbellContainerNode_t *)malloc(sizeof(dbellContainerNode_t));
+    list->head = (horoContainerNode_t *)malloc(sizeof(horoContainerNode_t));
     if(list->head == NULL)
     {
-        ret = DBELL_ERROR_NO_MEM;
+        ret = HORO_ERROR_NO_MEM;
         goto ERR;
     }
     initListNode(list->head);
@@ -96,7 +101,7 @@ addToEmptyList(dbellContainer_t *list, const void *value, size_t size)
     list->head->data = malloc(size);
     if(list->head->data == NULL)
     {
-        ret = DBELL_ERROR_NO_MEM;
+        ret = HORO_ERROR_NO_MEM;
         goto ERR;
     }
     memcpy(list->head->data, value, size);
@@ -118,15 +123,15 @@ ERR:
     return ret;
 }
 
-static DBELL_ERROR
-addToEndOfList(dbellContainer_t *list, const void *value, size_t size)
+static HORO_ERROR
+addToEndOfList(horoContainer_t *list, const void *value, size_t size)
 {
-    DBELL_ERROR ret = DBELL_SUCCESS;
+    HORO_ERROR ret = HORO_SUCCESS;
 
-    dbellContainerNode_t *newNode = (dbellContainerNode_t*)malloc(sizeof(dbellContainerNode_t));
+    horoContainerNode_t *newNode = (horoContainerNode_t*)malloc(sizeof(horoContainerNode_t));
     if(newNode == NULL)
     {
-        ret = DBELL_ERROR_NO_MEM;
+        ret = HORO_ERROR_NO_MEM;
         goto ERR;
     }
     initListNode(newNode);
@@ -134,7 +139,7 @@ addToEndOfList(dbellContainer_t *list, const void *value, size_t size)
     newNode->data = malloc(size);
     if(newNode->data == NULL)
     {
-        ret = DBELL_ERROR_NO_MEM;
+        ret = HORO_ERROR_NO_MEM;
         goto ERR;
     }
     memcpy(newNode->data, value, size);
@@ -155,10 +160,10 @@ ERR:
     return ret;
 }
 
-static DBELL_ERROR
-dbellList_add(dbellContainer_t *list, const void *value, size_t size)
+static HORO_ERROR
+horoList_add(horoContainer_t *list, const void *value, size_t size)
 {
-    DBELL_ERROR ret = DBELL_SUCCESS;
+    HORO_ERROR ret = HORO_SUCCESS;
 
     RETURN_ILLEGAL_IF(list == NULL);
     RETURN_IF_NOT_INITIALIZED(list);
@@ -166,7 +171,7 @@ dbellList_add(dbellContainer_t *list, const void *value, size_t size)
 
     if(list == NULL)
     {
-        ret = DBELL_ERROR_ILLEGAL_ARG;
+        ret = HORO_ERROR_ILLEGAL_ARG;
     }
 
     if(0 == list->numElements)
@@ -183,23 +188,23 @@ END:
     return ret;
 }
 
-static DBELL_ERROR
-dbellList_size(dbellContainer_t *list, size_t *sizeReturn)
+static HORO_ERROR
+horoList_size(horoContainer_t *list, size_t *sizeReturn)
 {
     RETURN_ILLEGAL_IF(list == NULL);
     RETURN_IF_NOT_INITIALIZED(list);
     RETURN_ILLEGAL_IF(sizeReturn == NULL);
     *sizeReturn = list->numElements;
 
-    return DBELL_SUCCESS;
+    return HORO_SUCCESS;
 }
 
-static DBELL_ERROR
-dbellList_remove(dbellContainer_t *list, int index)
+static HORO_ERROR
+horoList_remove(horoContainer_t *list, int index)
 {
-    DBELL_ERROR ret = DBELL_SUCCESS;
+    HORO_ERROR ret = HORO_SUCCESS;
     int count = 0;
-    dbellContainerNode_t *currNode = list->head;
+    horoContainerNode_t *currNode = list->head;
 
 
     RETURN_ILLEGAL_IF(list == NULL);
@@ -209,7 +214,7 @@ dbellList_remove(dbellContainer_t *list, int index)
 
     if(index > (list->numElements - 1))
     {
-        ret = DBELL_ERROR_ILLEGAL_ARG;
+        ret = HORO_ERROR_ILLEGAL_ARG;
         goto DONE;
     }
 
@@ -224,7 +229,7 @@ dbellList_remove(dbellContainer_t *list, int index)
 
     if(currNode == NULL)
     {
-        ret = DBELL_ERROR_CORRUPT;
+        ret = HORO_ERROR_CORRUPT;
         goto DONE;
     }
 
@@ -251,14 +256,14 @@ DONE:
     return ret;
 }
 
-static DBELL_ERROR
-dbellList_forEach(const dbellContainer_t *list,
-                  dbellList_forEachFunc callBack,
+static HORO_ERROR
+horoList_forEach(const horoContainer_t *list,
+                  horoList_forEachFunc callBack,
                   void *userp)
 {
 
-    DBELL_ERROR err = DBELL_SUCCESS;
-    dbellContainerNode_t *currNode = list->head;
+    HORO_ERROR err = HORO_SUCCESS;
+    horoContainerNode_t *currNode = list->head;
 
     RETURN_ILLEGAL_IF(list == NULL);
     RETURN_IF_NOT_INITIALIZED(list);
@@ -275,10 +280,10 @@ dbellList_forEach(const dbellContainer_t *list,
 }
 
 static void
-dbellList_destroyNodes(dbellContainer_t *list)
+horoList_destroyNodes(horoContainer_t *list)
 {
-    dbellContainerNode_t *currNode = list->head;
-    dbellContainerNode_t *tmpNode = currNode;
+    horoContainerNode_t *currNode = list->head;
+    horoContainerNode_t *tmpNode = currNode;
 
     if(list == NULL) return;
     if(list->numElements == 0) return;
@@ -290,38 +295,38 @@ dbellList_destroyNodes(dbellContainer_t *list)
         freeListNode(tmpNode);
         tmpNode = currNode;
     }
-    dbellList_init(list);
+    horoList_init(list);
 }
 
-struct dbell_entry
+struct horo_entry
 {
     uint64_t id;
     
     CronVals scheduleVals;    
 
-    dbell_time_t lastRuntime;
+    horo_time_t lastRuntime;
   
-    dbell_actionFunc action;
+    horo_actionFunc action;
     void *actionData;
 };
-typedef struct dbell_entry dbell_entry_t;
+typedef struct horo_entry horo_entry_t;
 
 
-struct dbell_clock
+struct horo_clock
 {
-    dbellList_t entries;
+    horoList_t entries;
 
-    dbell_time_t lastTick;
+    horo_time_t lastTick;
     uint64_t nextActionID;
 };
 
-DBELL_ERROR
-dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString, 
-                     dbell_actionFunc action, void *actionData,
+HORO_ERROR
+horo_scheduleAction(horo_clock_t* clock, const char *scheduleString, 
+                     horo_actionFunc action, void *actionData,
                      int* oActionID)
 {
-    DBELL_ERROR err = DBELL_SUCCESS;
-    dbell_entry_t newEntry;
+    HORO_ERROR err = HORO_SUCCESS;
+    horo_entry_t newEntry;
     CronVals cronVals;
 
     RETURN_ILLEGAL_IF(scheduleString == NULL);
@@ -343,7 +348,7 @@ dbell_scheduleAction(dbell_clock_t* clock, const char *scheduleString,
     newEntry.action = action;
     newEntry.actionData = actionData;
 
-    err = dbellList_add(&clock->entries, &newEntry, sizeof(newEntry)); 
+    err = horoList_add(&clock->entries, &newEntry, sizeof(newEntry)); 
     if(err) goto DONE;
 
     *oActionID = newEntry.id;
@@ -353,22 +358,22 @@ DONE:
 
 typedef struct
 {
-    dbell_clock_t* clock;
-    dbell_time_t const* userTime;
+    horo_clock_t* clock;
+    horo_time_t const* userTime;
 }checkEntryData_t;
 
 static int
 checkDOMWithDOW(uint64_t dayOfMonth, uint64_t dayOfWeek, 
-                dbell_time_t const* timeVals)
+                horo_time_t const* timeVals)
 {
-    if((dayOfMonth == DBELL_ASTERISK) &&
-       (dayOfWeek == DBELL_ASTERISK))
+    if((dayOfMonth == HORO_ASTERISK) &&
+       (dayOfWeek == HORO_ASTERISK))
     {
         return 1;
     }
 
-    if((dayOfMonth != DBELL_ASTERISK) &&
-       (dayOfWeek != DBELL_ASTERISK))
+    if((dayOfMonth != HORO_ASTERISK) &&
+       (dayOfWeek != HORO_ASTERISK))
     {
         if((dayOfWeek & ((uint64_t)1 << timeVals->dayOfWeek)) &&
            (dayOfMonth & ((uint64_t)1 << timeVals->dayOfMonth)))
@@ -377,7 +382,7 @@ checkDOMWithDOW(uint64_t dayOfMonth, uint64_t dayOfWeek,
         }
     }
 
-    if(dayOfMonth == DBELL_ASTERISK)
+    if(dayOfMonth == HORO_ASTERISK)
     {
         if(dayOfWeek & ((uint64_t)1 << timeVals->dayOfWeek))
         {
@@ -385,7 +390,7 @@ checkDOMWithDOW(uint64_t dayOfMonth, uint64_t dayOfWeek,
         }
     }
 
-    if(dayOfWeek == DBELL_ASTERISK)
+    if(dayOfWeek == HORO_ASTERISK)
     {
         if(dayOfMonth & ((uint64_t)1 << timeVals->dayOfMonth))
         {
@@ -396,11 +401,11 @@ checkDOMWithDOW(uint64_t dayOfMonth, uint64_t dayOfWeek,
     return 0;
 }
 
-static DBELL_ERROR
-checkEachEntry(dbell_entry_t* entry, checkEntryData_t* checkEntryData)
+static HORO_ERROR
+checkEachEntry(horo_entry_t* entry, checkEntryData_t* checkEntryData)
 {
-    dbell_time_t const* lastRuntime = NULL;
-    dbell_time_t const* userTime = checkEntryData->userTime;
+    horo_time_t const* lastRuntime = NULL;
+    horo_time_t const* userTime = checkEntryData->userTime;
     
     if((entry->scheduleVals.minute & ((uint64_t)1 << userTime->minute)) &&
        (entry->scheduleVals.hour & ((uint64_t)1 << userTime->hour)) && 
@@ -421,32 +426,32 @@ checkEachEntry(dbell_entry_t* entry, checkEntryData_t* checkEntryData)
         }
     }
 
-    return DBELL_SUCCESS;
+    return HORO_SUCCESS;
 }
 
-DBELL_ERROR
-dbell_init(dbell_clock_t** oClock)
+HORO_ERROR
+horo_init(horo_clock_t** oClock)
 {
     RETURN_ILLEGAL_IF(oClock == NULL);
 
     //TODO: Add callback for memory allocation
-    *oClock = malloc(sizeof(dbell_clock_t));
+    *oClock = malloc(sizeof(horo_clock_t));
     if(*oClock == NULL)
     {
-        return DBELL_ERROR_NO_MEM;
+        return HORO_ERROR_NO_MEM;
     }
     
     memset(&(*oClock)->lastTick, 0, sizeof((*oClock)->lastTick));
     (*oClock)->nextActionID=0;
-    return dbellList_init(&(*oClock)->entries);
+    return horoList_init(&(*oClock)->entries);
 }
 
-DBELL_ERROR
-dbell_process(dbell_clock_t* clock, dbell_time_t const* userTime)
+HORO_ERROR
+horo_process(horo_clock_t* clock, horo_time_t const* userTime)
 {
 
     size_t numEntries = 0;
-    DBELL_ERROR ret = DBELL_SUCCESS;
+    HORO_ERROR ret = HORO_SUCCESS;
 
     VALIDATE_RANGE_OR_RETURN(userTime->minute, 0, 59);
     VALIDATE_RANGE_OR_RETURN(userTime->hour, 0, 23);
@@ -454,7 +459,7 @@ dbell_process(dbell_clock_t* clock, dbell_time_t const* userTime)
     VALIDATE_RANGE_OR_RETURN(userTime->month, 1, 12);
     VALIDATE_RANGE_OR_RETURN(userTime->dayOfWeek, 0, 7);
 
-    ret = dbellList_size(&clock->entries, &numEntries);
+    ret = horoList_size(&clock->entries, &numEntries);
     if(ret)
     {
         return ret;
@@ -467,8 +472,8 @@ dbell_process(dbell_clock_t* clock, dbell_time_t const* userTime)
         entryCheck.userTime = userTime;
 
         //TODO: check return
-        dbellList_forEach((dbellContainer_t*)&clock->entries,
-                          (dbellList_forEachFunc)checkEachEntry,
+        horoList_forEach((horoContainer_t*)&clock->entries,
+                          (horoList_forEachFunc)checkEachEntry,
                           &entryCheck);
 
         clock->lastTick = *userTime;
@@ -477,20 +482,20 @@ dbell_process(dbell_clock_t* clock, dbell_time_t const* userTime)
     return ret;
 }
 
-DBELL_ERROR
-dbell_unscheduleAction(dbell_clock_t* clock, int actionID)
+HORO_ERROR
+horo_unscheduleAction(horo_clock_t* clock, int actionID)
 {
     int found = 0;
     int index = 0;
-    DBELL_ERROR ret = DBELL_ERROR_UNKNOWN_ACTION;
-    dbellContainerNode_t *node = NULL;
+    HORO_ERROR ret = HORO_ERROR_UNKNOWN_ACTION;
+    horoContainerNode_t *node = NULL;
 
     RETURN_ILLEGAL_IF(clock == NULL);
 
     node = clock->entries.head;
     while(node != NULL)
     {
-        dbell_entry_t* entry = (dbell_entry_t*)node->data;
+        horo_entry_t* entry = (horo_entry_t*)node->data;
         if(entry->id == actionID)
         {
             found = 1;
@@ -502,28 +507,28 @@ dbell_unscheduleAction(dbell_clock_t* clock, int actionID)
     
     if(found)
     {
-        ret = dbellList_remove(&clock->entries, index);
+        ret = horoList_remove(&clock->entries, index);
     }
 
     return ret;
 }
 
-DBELL_ERROR
-dbell_actionCount(dbell_clock_t* clock, int* oActionCount)
+HORO_ERROR
+horo_actionCount(horo_clock_t* clock, int* oActionCount)
 {
     RETURN_ILLEGAL_IF(clock == NULL);
     RETURN_ILLEGAL_IF(oActionCount == NULL);
 
     *oActionCount = clock->entries.numElements;
-    return DBELL_SUCCESS;
+    return HORO_SUCCESS;
 }
 
-DBELL_ERROR
-dbell_destroy(dbell_clock_t* clock)
+HORO_ERROR
+horo_destroy(horo_clock_t* clock)
 {
     RETURN_ILLEGAL_IF(clock == NULL);
-    dbellList_destroyNodes(&clock->entries);
+    horoList_destroyNodes(&clock->entries);
     free(clock);
 
-    return DBELL_SUCCESS;
+    return HORO_SUCCESS;
 }
