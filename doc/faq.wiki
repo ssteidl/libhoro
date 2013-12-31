@@ -8,7 +8,7 @@ easily integrate into any program event loop.
 
 Horo is short for horology.  Horology is the study of time.  We thought it would be a clever name.
 
-<h3>Can I see and example of how it works?</h3>
+<h3>Can I see an example of how it works?</h3>
 
 Absolutely.  Below is a short explanation of how to use libhoro. Also, the test program
 [/doc/trunk/src/cronprint.c|cronprint.c] is a very simple example of using the libhoro interface.
@@ -17,10 +17,10 @@ Absolutely.  Below is a short explanation of how to use libhoro. Also, the test 
   <li> 
     Declare and initialze a horo pointer.  horo_init() will allocate memory
     so the horo_clock_t must be destroyed with horo_destroy.
-    <blockquote><verbatim>
+    <verbatim>
       horo_clock_t* clock = NULL;
       HORO_ERROR err = horo_init(&clock)
-    </verbatim></blockquote>
+    </verbatim>
   </li>
   <li>
     Declare and implement an action callback which will be executed as
@@ -28,7 +28,7 @@ Absolutely.  Below is a short explanation of how to use libhoro. Also, the test 
     callback prints a timestamp and a string that is passed to the
     callback as actionData.  As shown in the next step, actionData can
     be linked to an action callback when scheduling the action.
-    <blockquote><verbatim>
+    <verbatim>
       void printCB(void* actionData)
       {
           time_t rawTime;
@@ -38,11 +38,11 @@ Absolutely.  Below is a short explanation of how to use libhoro. Also, the test 
           timeinfo = localtime(&rawTime);
           fprintf(stdout, "%s: %s\n", asctime(timeinfo), (char*)actionData);
       }
-    </verbatim></blockquote>
+    </verbatim>
   </li>
   <li>
     Schedule the action using a cron string to describe the schedule.  The 
-    following lists describes the parameters to horo_scheduldeAction()
+    following list describes the parameters to horo_scheduldeAction()
     <ol>
       <li>
 	<strong>clock</strong>: The horo_clock_t that was created in step 1.
@@ -65,9 +65,9 @@ Absolutely.  Below is a short explanation of how to use libhoro. Also, the test 
 	action.
       </li>
     </ol>
-    <blockquote><verbatim>
+    <verbatim>
       err = horo_scheduleAction(clock, "*/10 9-14 23 6 *", printCB, "This string is my action data", &actionID);
-    </verbatim></blockquote>
+    </verbatim>
   </li>
   <li>
     Now that the action has been scheduled, the horo_process()
@@ -85,7 +85,8 @@ Absolutely.  Below is a short explanation of how to use libhoro. Also, the test 
     least one time every minute with a horo_time_t structure that
     contains the current time.  A very simple event loop is shown
     below:
-    <blockquote><verbatim>
+
+    <verbatim>
     while(1)
     {
         /*Retrieve a timestamp.*/
@@ -99,7 +100,9 @@ Absolutely.  Below is a short explanation of how to use libhoro. Also, the test 
         horoTime.minute = timeinfo->tm_min;
         horoTime.hour = timeinfo->tm_hour;
         horoTime.dayOfMonth = timeinfo->tm_mday;
-        horoTime.month = timeinfo->tm_mon;
+
+        /* !! Notice the +1 !!*/
+        horoTime.month = timeinfo->tm_mon + 1;
         horoTime.dayOfWeek = timeinfo->tm_wday;
 
         /*Will call any necessary actions scheduled for the current horoTime*/
@@ -108,23 +111,32 @@ Absolutely.  Below is a short explanation of how to use libhoro. Also, the test 
         /*Wait until the next minute*/
         delay();
     }
-    </verbatim></blockquote>
+    </verbatim>
+    <strong>!!NOTE:</strong> If using localtime() to fill in the
+    timeVals structure, you must add 1 to the tm_mon field as shown in
+    the example below.  This is because localtime() returns 0-11 and the
+    crontab spec expects 1-12.
+
     <li>
-      TODO: Unschedule action.
+      If an action is no longer needed, it can be unscheduled with the horo_unscheduleAction() API and the
+      action ID returned from horo_scheduleAction():
+      <verbatim>
+          err = horo_unscheduleAction(clock, actionID);
+      </verbatim>        
     </li>
     <li>
       Remember, a horo_clock_t object that was initialized with horo_init() 
       must be destroyed with horo_destroy().
       
     </li>
-    <blockquote><verbatim>
+    <verbatim>
 	err = horo_destroy(clock);
-    </verbatim></blockquote>
+    </verbatim>
   </li>
 </ol>
 
 <h3>What If My Actions Take Longer Than a Minute?</h3>
-I your actions take longer than a minute than they should be executed
+If your actions take longer than a minute than they should be executed
 in a separate thread.  As previously mentioned, horo_process() must
 be executed at least once per minute.
 
@@ -133,6 +145,19 @@ If you don't call horo_process() in a given minute than any action that
 should have been executed in that minute will not be executed. In fact,
 if multiple actions are scheduled for the same minute, than they must all
 finish within 1 minute or execute in a separate thread.
+
+<h3>What Type of Schedule Strings are Supported</h3>
+The schedule (cron) strings comply with the [http://www.manpagez.com/man/5/crontab/|crontab man page's] 
+description of cron strings. The one major <strong>EXCEPTION</strong> is that week days cannot
+be names, they must be values from 0-7.  This is an oversight by the original auther and will
+be fixed in future releases.  However, all other extensions are implemented, including '@' strings:
+<verbatim>
+  "@yearly"
+  "@monthly"
+  "@weekly"
+  "@daily"
+  "@hourly"
+</verbatim> 
 
 <h3>Is libhoro Thread Safe?</h3>
 No, currently flex is used as the cron string lexer which is not thread
@@ -148,7 +173,35 @@ hasn't been thoroughly tested.
 Currently GCC and Microsoft Visual C.
 
 <h3>How Do I Integrate libhoro Into My Project?</h3>
-TODO: Talk about Makefile examples and amalgamation.  Currently no shared lib.
+libHoro is distributed as two files, a header file and a .c amalgamation file which are intended
+to be compiled directly into your application or library.  There is currently no pre compiled 
+shared library.  Possible compiler commands are shown below.  There are also examples in
+[/doc/trunk/src/Makefile|Makefile] for gcc and [/doc/trunk/src/Makefile.msvc|Makefile.msvc].
+
+<h6>Example compiling with gcc</h6>
+<verbatim>
+    #Note: g++ can be used in place of gcc
+
+    #Create the object file
+    gcc -g -O0 -c -o horo-amal.o horo-amal.c 
+
+    #Link object file with application
+    gcc -g -ocronprint-amal cronprint.c horo-amal.o
+</verbatim>
+<h6>Example compiling with gcc</h6>
+<verbatim>
+    #Note: Compiling with /EHsc for c++ applications is also supported.
+
+    #Create the object file
+    cl /nologo /c  horo-amal.c 
+
+    #Link object file with application
+    cl /nologo cronprint.c horo-amal.obj
+</verbatim>
+
+<h3>I've Found a Bug, How do I Report It?</h3>
+You can log into this website as an anonymous user and use the [/tktnew|New Ticket] page
+to create a bug report.  
 
 <h3>Is There a Feature RoadMap for libhoro?</h3>
 It depends on user feedback, but a rough roadmap is as follows:
