@@ -114,7 +114,7 @@ Absolutely.  Below is a short explanation of how to use libhoro. Also, the test 
     </verbatim>
     <strong>!!NOTE:</strong> If using localtime() to fill in the
     timeVals structure, you must add 1 to the tm_mon field as shown in
-    the example below.  This is because localtime() returns 0-11 and the
+    the example above.  This is because localtime() returns 0-11 and the
     crontab spec expects 1-12.
 
     <li>
